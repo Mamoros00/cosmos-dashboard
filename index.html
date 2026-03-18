@@ -296,11 +296,40 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
     <span><span class="ci c2"></span>Connector 2 — TYPE 2</span>
   </div>
   <div class="fbar">
-    <div class="fg"><span class="fl">Instalación</span><select class="fsel" id="vf-inst" onchange="renderFlota()"><option value="">Todas</option></select></div>
-    <div class="fg"><span class="fl">Modelo</span><select class="fsel" id="vf-mod" onchange="renderFlota()"><option value="">Todos</option></select></div>
-    <div class="fg"><span class="fl">Estado</span><select class="fsel" id="vf-st" onchange="renderFlota()"><option value="">Todos</option><option>available</option><option>offline</option></select></div>
-    <div class="fg"><span class="fl">&nbsp;</span><button class="btn-up bc" style="position:static" onclick="renderFlota()">Aplicar</button></div>
+  <div class="fg"><span class="fl">Instalación</span>
+    <select class="fsel" id="vf-inst" onchange="renderFlota()">
+      <option value="">Todas</option>
+    </select>
   </div>
+
+  <div class="fg"><span class="fl">Modelo</span>
+    <select class="fsel" id="vf-mod" onchange="renderFlota()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+
+  <div class="fg"><span class="fl">Estado</span>
+    <select class="fsel" id="vf-st" onchange="renderFlota()">
+      <option value="">Todos</option>
+      <option>available</option>
+      <option>offline</option>
+    </select>
+  </div>
+
+  <!-- ✅ NUEVO -->
+  <div class="fg">
+    <span class="fl">Críticos</span>
+    <label style="font-size:.7rem;cursor:pointer">
+      <input type="checkbox" id="vf-only-critical" checked onchange="renderFlota()">
+      Solo críticos
+    </label>
+  </div>
+
+  <div class="fg">
+    <span class="fl"> </span>
+    <button class="btn-up bc" style="position:static" onclick="renderFlota()">Aplicar</button>
+  </div>
+</div>
   <div id="flota-cont"></div>
 </div>
 
@@ -323,7 +352,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
   </div>
   <div class="fbar">
     <div class="fg"><span class="fl">Instalación</span><select class="fsel" id="dc-inst" onchange="dcFillCarg()"><option value="">Todas</option></select></div>
-    <div class="fg"><span class="fl">Modelo</span><select class="fsel" id="dc-mod"><option value="">Todos</option></select></div>
+    <div class="fg"><span class="fl">Modelo</span><select class="fsel" id="dc-mod" onchange="renderDC()"><option value="">Todos</option></select></div>
     <div class="fg"><span class="fl">Cargador</span><select class="fsel" id="dc-carg" onchange="dcFillConn()"><option value="">Todos</option></select></div>
     <div class="fg"><span class="fl">Connector</span><select class="fsel" id="dc-conn" onchange="renderDC()"><option value="">Todos</option></select></div>
     <div class="fg"><span class="fl">Desde</span><input type="date" class="finp" id="dc-desde" onchange="renderDC()"></div>
@@ -347,7 +376,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
   <div class="dc">
     <div class="dct">Log de Eventos (últimos 50)</div>
     <div class="tw">
-      <table class="dt"><thead><tr><th>Fecha y Hora</th><th>Instalación</th><th>Cargador</th><th>Modelo</th><th>Conn #</th><th>Tipo Conn</th><th>Vendor Code</th><th>Error Code</th><th>Estado</th><th>Duración</th></tr></thead>
+      <table class="dt"><thead><tr><th>Fecha y Hora</th><th>Instalación</th><th>Cargador</th><th>Modelo</th><th>Conn #</th><th>Tipo Conn</th><th>Vendor Code</th><th>Error Description</th><th>Estado</th><th>Duración</th></tr></thead>
       <tbody id="tb-log"><tr><td colspan="10" class="text-center" style="color:var(--t3);padding:28px">Sin datos</td></tr></tbody></table>
     </div>
   </div>
@@ -383,8 +412,8 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
   <div class="dc">
     <div class="dct">Tabla Maestra de Errores</div>
     <div class="tw">
-      <table class="dt"><thead><tr><th>Vendor Code</th><th>Conn #</th><th>Tipo Conn</th><th>Error Code</th><th>Casos</th><th>Cargadores</th><th>Instalaciones</th><th>Dur. Total</th><th>MTTR Medio</th><th>1er Registro</th><th>Último Registro</th></tr></thead>
-      <tbody id="tb-err"><tr><td colspan="11" class="text-center" style="color:var(--t3);padding:28px">Sin datos</td></tr></tbody></table>
+      <table class="dt"><thead><tr><th>Vendor Code</th><th>Error Description</th><th>Conn #</th><th>Tipo Conn</th><th>Casos</th><th>Cargadores</th><th>Instalaciones</th><th>Dur. Total</th><th>MTTR Medio</th><th>1er Registro</th><th>Último Registro</th></tr></thead>
+      <tbody id="tb-err"></tbody></table>
     </div>
   </div>
 </div>
@@ -393,10 +422,126 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 
 <script>
 /* ═══════════════════════════════════════════════════
+   MAPEO DE ERRORES CIRCONTROL V7.0
+═══════════════════════════════════════════════════ */
+const CIRCONTROL_ERROR_MAP = {
+  // Generic and Unknown
+  "CO.00.000": "Generic error",
+  "CO.01.001": "Mains power supply failure",
+  "CE.01.002": "Temperature Out Of Range",
+  "CE.01.003": "Communications (EVSE communications error)",
+  "CO.01.007": "Charging station configuration error",
+  "CO.01.101": "Mains Ground Failure",
+  "CE.01.102": "Mains Voltage Out of Range",
+  "CE.01.103": "Mains Frequency Out of Range",
+  "CE.01.104": "Mains overvoltage",
+  "CE.01.105": "Mains undervoltage",
+  "CE.01.108": "High Temperature",
+  "CE.01.109": "Low Temperature",
+  "CE.01.110": "WAN communications lost",
+  "CO.01.111": "Connector in error due to CS/EVSE error",
+  "CO.01.112": "All Connectors Error",
+  "CO.01.120": "Auxiliary Power Supply failure",
+  // Sensors & Tampering
+  "UO.02.101": "Door tamper alarm",
+  "CO.02.102": "Tilt sensor error",
+  "UO.02.103": "Emergency button pressed",
+  "UO.03.101": "Emergency button pressed",
+  "CO.04.000": "Display failure",
+  "CO.11.000": "RFID reader failure",
+  "CE.14.003": "Power meter communications error",
+  "CE.14.102": "Power meter AC communications error",
+  // Vehicle Errors
+  "VE.20.000": "Vehicle generic error",
+  "VE.20.003": "Vehicle communications error",
+  "VE.20.004": "Vehicle communications timeout",
+  "VE.20.008": "Vehicle fault flag",
+  "UE.20.101": "Vehicle not detected",
+  "VE.20.102": "Vehicle overcurrent consumption",
+  "VE.20.110": "Vehicle invalid protocol version",
+  "VE.20.112": "Charging parameters out of range",
+  // Cable & Locking
+  "CE.21.003": "Charging cable comm error",
+  "VE.21.101": "Connector malfunction",
+  "CO.21.102": "Connector temperature measurement failure",
+  "CO.21.103": "Cut cable",
+  "CE.21.105": "Connector High Temperature",
+  "CE.21.106": "Connector housing overtemperature",
+  "CE.21.107": "Cable overtemperature",
+  "CO.21.108": "Cable liquid leakage",
+  "UE.22.101": "Connector lock failure",
+  // Controllers
+  "CE.23.003": "M3 controller comms error",
+  "CO.24.001": "M4 controller power supply failure",
+  "CE.24.002": "M4 controller temperature out of range",
+  "CE.24.003": "M4 controller comms error",
+  "CO.24.006": "M4 controller software failure",
+  "CO.24.007": "M4 controller firmware version wrong",
+  "CO.24.008": "M4 controller hardware failure",
+  "CO.24.101": "M4 controller power manager supervisor alarms",
+  "CE.24.103": "Power diode overtemperature",
+  "CE.24.105": "M4 expander board comms error",
+  "CE.24.106": "M4 controller to SECC (lotecha) comms error",
+  "CO.24.107": "lotecha hardware failure",
+  "CE.24.110": "M4 controller to SECC (AKKA) comms error",
+  "CE.24.115": "Control pilot signal failure",
+  "CE.24.120": "M4 controller to supervisor comms error",
+  "CE.24.125": "M4 controller voltage sensor measurement error",
+  "CE.24.128": "M4 controller overcurrent measurement",
+  "CE.24.140": "M4 controller cable check fail",
+  "CE.24.145": "M4 controller precharge fail",
+  "CE.24.150": "M4 controller current demand fail",
+  "CE.24.155": "M4 controller welding detection fail",
+  "CE.24.160": "M4 controller stop charge fail",
+  // Power Manager
+  "CO.25.000": "Power manager error",
+  "CE.25.004": "Power modules comms timeout",
+  "CE.25.009": "Power modules AC input voltage out of range",
+  "CE.25.010": "Power modules AC input current out of range",
+  "CE.25.120": "Power manager supervisor comms error",
+  "CO.25.150": "Power modules hardware error",
+  // Contactors & Safety
+  "CO.26.101": "Welding contactor",
+  "CO.26.110": "Welding DC contactor",
+  "CO.26.115": "Welding DC precharge contactor",
+  "CO.27.001": "Internal power supply failure",
+  "CE.27.003": "IMD comms error",
+  "VE.27.101": "RCD DC leakeage detected",
+  "CO.27.102": "Electrical protection triggered",
+  "CE.27.103": "Isolation error",
+  "CO.27.104": "RCD protection triggered",
+  "CO.27.105": "MCB protection triggered",
+  "CE.27.115": "SPD alarm",
+  "CE.28.101": "IMD isolation fault",
+  "CO.28.102": "IMD broken wire DC line",
+  "CO.28.103": "IMD broken wire PE",
+  "CO.28.110": "IMD autotest failure"
+};
+
+/**
+ * Función auxiliar para obtener la descripción legible basada en Vendor Code
+ */
+function getErrorDescription(vendorCode, fallback) {
+  return CIRCONTROL_ERROR_MAP[vendorCode] || fallback || "Descripción no disponible";
+}
+
+/* ═══════════════════════════════════════════════════
    DATA STORE
 ═══════════════════════════════════════════════════ */
 const D={cargadores:[],alarmas:[],sesiones:[]};
 const CH={};
+// Observation window for uptime calculations (min/max timestamps across loaded data)
+const OBS={min:null,max:null,spanH:0};
+function computeObsWindow(){
+  const ts=[
+    ...D.alarmas.map(a=>a.producedAt).filter(Boolean).map(d=>d.getTime()),
+    ...D.sesiones.map(s=>s.startDate).filter(Boolean).map(d=>d.getTime())
+  ];
+  if(!ts.length){ OBS.min=null; OBS.max=null; OBS.spanH=0; return; }
+  OBS.min=Math.min(...ts); OBS.max=Math.max(...ts);
+  OBS.spanH=Math.max(0,(OBS.max-OBS.min)/3600000);
+}
+
 let isDark=true, deSel=null;
 
 /* ── Theme ── */
@@ -443,7 +588,7 @@ function parseAlarm(raw){
       errorCode:String(r[6]||'').trim(), status:String(r[7]||'').trim(),
       vendorCode:String(r[8]||'').trim(),
       producedAt:dt, producedAtStr:String(r[9]||''),
-      duration:parseFloat(r[10])||0
+      duration: (parseFloat(r[10]) || 0)
     };
   });
 }
@@ -465,7 +610,7 @@ function parseSess(raw){
       startDate:dt, startDateStr:`${r[4]||''} ${r[5]||''}`.trim(),
       endDateStr:`${r[6]||''} ${r[7]||''}`.trim(),
       durationStr:String(r[8]||''), durationSec:durSec,
-      energy:parseFloat(r[9])||0, totalAmount:parseFloat(r[10])||0,
+      energy: (parseFloat(r[9]) || 0), totalAmount: (parseFloat(r[10]) || 0),
       soc:r[12], tagType:String(r[13]||'')
     };
   });
@@ -476,6 +621,7 @@ $('#f-alarmas').on('change',function(){if(!this.files[0])return;rxlsx(this.files
 $('#f-sesiones').on('change',function(){if(!this.files[0])return;rxlsx(this.files[0],raw=>{D.sesiones=parseSess(raw);$('#lbl-s').addClass('loaded');onLoad();});});
 
 function onLoad(){
+  computeObsWindow();
   populateFilters();
   updateKPIs();
   const activeTab=$('.tbtn.active').data('tab')||'vg';
@@ -515,37 +661,90 @@ function populateFilters(){
 
 /* ── KPIs ── */
 function updateKPIs(){
-  const A=D.alarmas,S=D.sesiones,C=D.cargadores;
-  $('#k-ev').text(A.length||'—');
-  const iSet=new Set([...C.map(c=>c.facility),...A.map(a=>a.facility)].filter(Boolean));
-  $('#k-inst').text(iSet.size||'—');
-  const cSet=new Set([...C.map(c=>c.name),...A.map(a=>a.chargerName)].filter(Boolean));
-  const nC=cSet.size; $('#k-carg').text(nC||'—');
-  const durs=A.map(a=>a.duration).filter(d=>d>0);
-  const mttr=durs.length?durs.reduce((x,y)=>x+y,0)/durs.length:0;
-  $('#k-mttr').text(mttr?fmtS(mttr):'—');
-  const ad=A.map(a=>a.producedAt).filter(Boolean);
-  let mtbf=0;
-  if(ad.length>1&&nC>0){const sp=(Math.max(...ad)-Math.min(...ad))/3600000;mtbf=sp/(A.length/nC);}
-  $('#k-mtbf').text(mtbf?mtbf.toFixed(1)+'h':'—');
-  const totalDownH=durs.reduce((x,y)=>x+y,0)/3600;
-  let up='—';
-  if(ad.length>1){const spH=(Math.max(...ad)-Math.min(...ad))/3600000;if(spH>0)up=Math.min(100,(1-totalDownH/(spH*(nC||1)))*100).toFixed(2)+'%';}
+  const A = D.alarmas, S = D.sesiones, C = D.cargadores;
+
+  $('#k-ev').text(A.length || '—');
+
+  const iSet = new Set([...C.map(c=>c.facility), ...A.map(a=>a.facility)].filter(Boolean));
+  $('#k-inst').text(iSet.size || '—');
+
+  const cSet = new Set([...C.map(c=>c.name), ...A.map(a=>a.chargerName)].filter(Boolean));
+  const chargers = [...cSet];
+  const nC = chargers.length || 1;
+  $('#k-carg').text(nC || '—');
+
+  // MTTR medio
+  const durs = A.map(a=>a.duration).filter(d=>d>0);
+  const mttr = durs.length ? durs.reduce((x,y)=>x+y,0)/durs.length : 0;
+  $('#k-mttr').text(mttr ? fmtS(mttr) : '—');
+
+  // Helper: unión de intervalos de downtime por cargador
+  function unionDowntimeSec(rows, winStartMs, winEndMs){
+    const intervals = [];
+    for(const r of rows){
+      if(!r.producedAt || !r.duration) continue;
+      let s = r.producedAt.getTime();
+      let e = s + r.duration*1000;
+      if(winStartMs!=null){ if(e<=winStartMs) continue; if(s<winStartMs) s=winStartMs; }
+      if(winEndMs!=null){ if(s>=winEndMs) continue; if(e>winEndMs) e=winEndMs; }
+      if(e>s) intervals.push([s,e]);
+    }
+    if(!intervals.length) return 0;
+    intervals.sort((a,b)=>a[0]-b[0]);
+    let totalMs = 0;
+    let [cs,ce] = intervals[0];
+    for(let i=1;i<intervals.length;i++){
+      const [s,e] = intervals[i];
+      if(s<=ce){ if(e>ce) ce=e; }
+      else { totalMs += ce-cs; cs=s; ce=e; }
+    }
+    totalMs += ce-cs;
+    return totalMs/1000;
+  }
+
+  // Downtime global = suma de uniones por cargador
+  let downTotalSec = 0;
+  chargers.forEach(ch => {
+    const rows = A.filter(a => a.chargerName === ch);
+    downTotalSec += unionDowntimeSec(rows, OBS.min, OBS.max);
+  });
+
+  // Uptime Global coherente con Detalle Cargador
+  let up = '—';
+  if(OBS.spanH > 0 && nC > 0){
+    const raw = (1 - (downTotalSec/3600)/(OBS.spanH * nC)) * 100;
+    up = Math.max(0, Math.min(100, raw)).toFixed(2) + '%';
+  }
   $('#k-up').text(up);
-  const vc={}; A.forEach(a=>{if(a.vendorCode)vc[a.vendorCode]=(vc[a.vendorCode]||0)+1;});
-  const topVC=Object.entries(vc).sort((a,b)=>b[1]-a[1])[0];
-  $('#k-errfreq').text(topVC?topVC[0]:'—'); $('#k-errfreq-s').text(topVC?topVC[1]+' casos':'');
-  $('#k-incid').text(nC?Math.round(A.length/nC*100):'—');
-  $('#k-sess').text(S.length||'—');
-  const enArr=S.map(s=>s.energy); const totalEn=enArr.reduce((x,y)=>x+y,0);
-  $('#k-en').text(totalEn?totalEn.toFixed(1):'—');
-  const totalRev=S.reduce((x,s)=>x+s.totalAmount,0);
-  $('#k-rev').text(S.length?totalRev.toFixed(2)+' €':'—');
-  $('#k-kwhs').text(S.length?(totalEn/S.length).toFixed(2)+' kWh':'—');
-  const z0=enArr.filter(e=>e===0).length;
-  $('#k-r0').text(S.length?(z0/S.length*100).toFixed(1)+'%':'—');
-  const sd=S.map(s=>s.durationSec).filter(d=>d>0);
-  $('#k-dur').text(sd.length?fmtS(sd.reduce((x,y)=>x+y,0)/sd.length):'—');
+
+  // MTBF red (simple, por cargador)
+  let mtbf = 0;
+  if(A.length > 0 && nC > 0) mtbf = OBS.spanH / (A.length / nC);
+  $('#k-mtbf').text(mtbf ? mtbf.toFixed(1) + 'h' : '—');
+
+  // Error más frecuente
+  const vc = {};
+  A.forEach(a => { if(a.vendorCode) vc[a.vendorCode] = (vc[a.vendorCode]||0)+1; });
+  const topVC = Object.entries(vc).sort((a,b)=>b[1]-a[1])[0];
+  $('#k-errfreq').text(topVC ? topVC[0] : '—');
+  $('#k-errfreq-s').text(topVC ? topVC[1] + ' casos' : '');
+
+  $('#k-incid').text(nC ? Math.round(A.length / nC * 100) : '—');
+
+  $('#k-sess').text(S.length || '—');
+  const totalEn = S.reduce((x,s)=>x+(s.energy||0),0);
+  $('#k-en').text(totalEn ? totalEn.toFixed(1) : '—');
+
+  const totalRev = S.reduce((x,s)=>x+(s.totalAmount||0),0);
+  $('#k-rev').text(S.length ? totalRev.toFixed(2)+' €' : '—');
+
+  $('#k-kwhs').text(S.length ? (totalEn/S.length).toFixed(2)+' kWh' : '—');
+
+  const z0 = S.filter(s=>s.energy===0).length;
+  $('#k-r0').text(S.length ? (z0/S.length*100).toFixed(1)+'%' : '—');
+
+  const sd = S.map(s=>s.durationSec).filter(d=>d>0);
+  $('#k-dur').text(sd.length ? fmtS(sd.reduce((x,y)=>x+y,0)/sd.length) : '—');
 }
 
 function fmtS(s){
@@ -686,7 +885,31 @@ function renderFlota(){
     return;
   }
 
-  // Index alarmas and sesiones by charger name
+  // ── criterio de cargador crítico (normalizado al periodo) ──
+function isCriticalCharger(alms, spanH){
+  if (!alms.length || !spanH || spanH <= 0) return false;
+
+  // downtime total (s → h)
+  const totDurSec = alms
+    .map(a => a.duration)
+    .filter(d => d > 0)
+    .reduce((x, y) => x + y, 0);
+
+  const downH = totDurSec / 3600;
+
+  // normalizaciones
+  const downRatio = downH / spanH;          // % tiempo caído
+  const days = spanH / 24;
+  const errPerDay = alms.length / days;     // errores / día
+
+  return (
+    downRatio > 0.10 ||    // >10% del tiempo caído
+    errPerDay > 3          // >3 errores por día
+  );
+}
+  const ONLY_CRITICAL = $("#vf-only-critical").is(":checked");
+  
+// Index alarmas and sesiones by charger name
   const aByC={}, sByC={};
   D.alarmas.forEach(a=>{
     aByC[a.chargerName]=aByC[a.chargerName]||[];
@@ -706,21 +929,14 @@ function renderFlota(){
     const conList=[...conSet].sort((a,b)=>+a-+b);
 
     // Map sessions by connector label extracted from "Name (TYPE - N)" pattern
-    // e.g. "eVolve Rapid Urgell (CCS2 - 1)" → connector 1
-    // "Raption 50 Sant Boi (CCS)" → connector 1 (CCS)
-    // "Raption 50 Sant Boi (62196 TYPE 2)" → connector 2
     function sessForConn(cn, connType){
       return sess.filter(s=>{
         const m=s.chargePoint.match(/\(([^)]+)\)$/);
         if(!m) return false;
         const label=m[1].toUpperCase();
-        // connector 0 → charge point level / no connector label / or just "CCS" on some units
         if(cn==='0') return label.includes('CHARGE POINT')||(!label.includes('-')&&!label.includes('TYPE 2')&&label!=='CCS2');
-        // connector 1 → CCS2-1, CCS (first port)
         if(cn==='1') return label.includes('CCS2')&&!label.includes('CCS2 - 2') || (label==='CCS');
-        // connector 2 → TYPE 2
         if(cn==='2') return label.includes('TYPE 2') || label.includes('62196');
-        // fallback: try to match " - N" at end
         const numM=label.match(/- (\d+)$/);
         return numM && numM[1]===cn;
       });
@@ -732,26 +948,25 @@ function renderFlota(){
       const totDur = durs.reduce((x,y)=>x+y, 0);
       const mttr = durs.length ? totDur/durs.length : 0;
 
-      // MTBF per connector: span of connector events / count
       const cdates = ca.map(a=>a.producedAt).filter(Boolean).map(d=>d.getTime());
       let mtbf=0;
       if(cdates.length>1){ mtbf=(Math.max(...cdates)-Math.min(...cdates))/3600000/(ca.length||1); }
       else if(spanH>0 && ca.length===1){ mtbf=spanH; }
 
-      // Uptime: based on full observation window for this charger
       let uptime='—';
-      if(spanH>0){ uptime=Math.min(100,(1 - totDur/3600/spanH)*100).toFixed(2)+'%'; }
-
-      const cSess = sessForConn(cn, connType);
-      const inc100 = ca.length*100;
-
-      return{err:ca.length, uptime, mttr, mtbf, down:totDur, inc100, sess:cSess.length};
+      if(spanH>0){
+      const downH = totDur/3600;
+      const raw = (1 - (downH/spanH))*100;
+      const clamped = Math.max(0, Math.min(100, raw));
+      uptime = clamped.toFixed(2) + '%';
     }
 
-    // colour helpers
+      const cSess = sessForConn(cn, connType);
+      return{err:ca.length, uptime, mttr, mtbf, down:totDur, sess:cSess.length};
+    }
+
     function errCls(n){ return n>10?'e':n>0?'w':'ok'; }
     function downCls(n){ return n>3600?'e':n>0?'w':'dim'; }
-    function incCls(n){ return n>1000?'e':n>0?'w':'dim'; }
 
     let t=`<table class="fc-kpi-table">
       <thead><tr>
@@ -760,7 +975,6 @@ function renderFlota(){
       </tr></thead><tbody>`;
 
     conList.forEach((cn,i)=>{
-      // get connType label from first matching alarm
       const sample=alms.find(a=>a.connector===cn);
       const ctLabel=sample?sample.connType:'';
       const s=conStats(cn, ctLabel);
@@ -785,19 +999,23 @@ function renderFlota(){
     return t;
   }
 
-  let html='<div class="row g-3">';
+  
+  if (ONLY_CRITICAL) {
+    cargs = cargs.filter(cg => {
+      const alms = aByC[cg.name] || [];
+      return isCriticalCharger(alms, OBS.spanH);
+    });
+  }
+let html='<div class="row g-3">';
   cargs.forEach(cg=>{
     const alms = aByC[cg.name]||[];
     const sess = sByC[cg.name.replace(/ \(.*\)/,'').trim()]||[];
-    const adates = alms.map(a=>a.producedAt).filter(Boolean).map(d=>d.getTime());
-    const spanH = adates.length>1 ? (Math.max(...adates)-Math.min(...adates))/3600000 : 0;
-
     html+=`<div class="col-lg-4 col-md-6"><div class="fc">
       <div class="mb-2">
         <div class="fc-name">${cg.name}</div>
         <div class="fc-sub">${cg.facility} · <em>${cg.model}</em>${cg.chargeboxId?' · <span class="mono">'+cg.chargeboxId+'</span>':''}</div>
       </div>
-      ${connKpiTable(alms, sess, spanH)}
+      ${connKpiTable(alms, sess, OBS.spanH)}
     </div></div>`;
   });
   html+='</div>';
@@ -809,41 +1027,81 @@ function renderFlota(){
 ════════════════════════════════════════ */
 let dcA=[];
 function renderDC(){
-  const inst=$('#dc-inst').val(),mod=$('#dc-mod').val(),carg=$('#dc-carg').val();
-  const conn=$('#dc-conn').val(),desde=$('#dc-desde').val(),hasta=$('#dc-hasta').val();
-  const A=filtA(inst,mod,carg,conn,desde,hasta);
-  dcA=A;
+  const inst = $('#dc-inst').val(), mod = $('#dc-mod').val(), carg = $('#dc-carg').val();
+  const conn = $('#dc-conn').val(), desde = $('#dc-desde').val(), hasta = $('#dc-hasta').val();
 
-  // KPIs
-  const durs=A.map(a=>a.duration).filter(d=>d>0);
-  const mttr=durs.length?durs.reduce((x,y)=>x+y,0)/durs.length:0;
-  const totalDown=durs.reduce((x,y)=>x+y,0);
-  const dates=A.map(a=>a.producedAt).filter(Boolean);
-  let mtbf=0,up='—';
-  if(dates.length>1){
-    const spH=(Math.max(...dates)-Math.min(...dates))/3600000;
-    mtbf=spH/(A.length||1);
-    if(spH>0){
-      const hasFilter=inst||mod||carg||conn||desde||hasta;
-      if(hasFilter){
-        // filtered: 1-cargador uptime over the filtered span
-        up=Math.min(100,(1-totalDown/3600/spH)*100).toFixed(2)+'%';
-      } else {
-        // no filter: same formula as global KPI banner (distribute downtime across all chargers)
-        const cSet=new Set([...D.cargadores.map(c=>c.name),...D.alarmas.map(a=>a.chargerName)].filter(Boolean));
-        const nC=cSet.size||1;
-        up=Math.min(100,(1-(totalDown/3600)/(spH*nC))*100).toFixed(2)+'%';
-      }
+  const A = filtA(inst, mod, carg, conn, desde, hasta);
+  dcA = A;
+
+  const durs = A.map(a => a.duration).filter(d => d > 0);
+  const mttr = durs.length ? durs.reduce((x,y)=>x+y,0) / durs.length : 0;
+
+  function unionDowntimeSec(rows, winStartMs, winEndMs){
+    const intervals = [];
+    for(const r of rows){
+      if(!r || !r.producedAt) continue;
+      const dur = +r.duration;
+      if(!dur || dur <= 0) continue;
+      let s = r.producedAt.getTime();
+      let e = s + dur*1000;
+      if(winStartMs != null){ if(e <= winStartMs) continue; if(s < winStartMs) s = winStartMs; }
+      if(winEndMs != null){ if(s >= winEndMs) continue; if(e > winEndMs) e = winEndMs; }
+      if(e > s) intervals.push([s,e]);
     }
+    if(!intervals.length) return 0;
+    intervals.sort((a,b)=>a[0]-b[0]);
+    let totalMs = 0;
+    let [cs,ce] = intervals[0];
+    for(let i=1;i<intervals.length;i++){
+      const [s,e] = intervals[i];
+      if(s <= ce){ if(e > ce) ce = e; } else { totalMs += (ce - cs); cs = s; ce = e; }
+    }
+    totalMs += (ce - cs);
+    return totalMs/1000;
   }
-  $('#dc-err').text(A.length); $('#dc-up').text(up); $('#dc-mttr').text(fmtS(mttr)||'—');
-  $('#dc-mtbf').text(mtbf?mtbf.toFixed(1)+'h':'—'); $('#dc-down').text(fmtS(totalDown)||'0s');
-  $('#dc-inc').text(A.length?A.length*100:'0');
 
-  // Fill connector dropdown
-  const conSet=[...new Set(A.map(a=>a.connector))].sort();
-  const $cc=$('#dc-conn'),curC=$cc.val();$cc.find('option:not(:first)').remove();
-  conSet.forEach(v=>$cc.append(`<option value="${v}">${v}</option>`));if(curC)$cc.val(curC);
+  function getScopeChargers(){
+    if(carg) return [carg];
+    let lst = D.cargadores || [];
+    if(inst) lst = lst.filter(c => c.facility === inst);
+    if(mod)  lst = lst.filter(c => c.model === mod);
+    const names = lst.map(c => c.name).filter(Boolean);
+    if(names.length) return [...new Set(names)];
+    const a2 = D.alarmas.filter(x => {
+      if(inst && x.facility !== inst) return false;
+      if(mod && x.chargerModel !== mod) return false;
+      return true;
+    });
+    return [...new Set(a2.map(x => x.chargerName).filter(Boolean))];
+  }
+
+  const scopeChargers = getScopeChargers();
+  const nC = scopeChargers.length || 1;
+  let downUnionTotalSec = 0;
+  for(const ch of scopeChargers){
+    const rows = A.filter(r => r.chargerName === ch);
+    downUnionTotalSec += unionDowntimeSec(rows, OBS.min, OBS.max);
+  }
+
+  let up = '—', mtbf = 0;
+  if(OBS.spanH > 0){
+    const raw = (1 - (downUnionTotalSec / 3600) / (OBS.spanH * nC)) * 100;
+    up = Math.max(0, Math.min(100, raw)).toFixed(2) + '%';
+    mtbf = OBS.spanH / ((A.length / nC) || 1);
+  }
+
+  $('#dc-err').text(A.length);
+  $('#dc-up').text(up);
+  $('#dc-mttr').text(fmtS(mttr) || '—');
+  $('#dc-mtbf').text(mtbf ? mtbf.toFixed(1) + 'h' : '—');
+  $('#dc-down').text(fmtS(downUnionTotalSec) || '0s');
+  $('#dc-inc').text(A.length ? Math.round(A.length / nC * 100) : '0');
+
+  const conSet = [...new Set(A.map(a => a.connector))].sort();
+  const $cc = $('#dc-conn'), curC = $cc.val();
+  $cc.find('option:not(:first)').remove();
+  conSet.forEach(v => $cc.append(`<option value="${v}">${v}</option>`));
+  if(curC) $cc.val(curC);
 
   renderDCCharts(A);
   renderDCLog(A);
@@ -855,10 +1113,8 @@ function renderDCCharts(A){
   const c=gc();
   const dD={},sD={};
   A.forEach(a=>{if(a.producedAt){const d=a.producedAt.toISOString().slice(0,10);dD[d]=(dD[d]||0)+1;}});
-  const selC=$('#dc-carg').val();
-  const selI=$('#dc-inst').val();
-  const dcDesde=$('#dc-desde').val();
-  const dcHasta=$('#dc-hasta').val();
+  const selC=$('#dc-carg').val(), selI=$('#dc-inst').val();
+  const dcDesde=$('#dc-desde').val(), dcHasta=$('#dc-hasta').val();
   D.sesiones.forEach(s=>{
     if(selI&&s.facility!==selI)return;
     if(selC&&s.chargePoint.replace(/ \(.*\)/,'').trim()!==selC)return;
@@ -893,7 +1149,7 @@ function renderDCLog(A){
     <td><span class="ci c${Math.min(parseInt(a.connector)||0,3)}"></span>${a.connector}</td>
     <td style="color:var(--t2);font-size:.62rem">${a.connType}</td>
     <td><span class="ebadge" onclick="goDE('${a.vendorCode}')">${a.vendorCode}</span></td>
-    <td><span class="rbadge">${a.errorCode}</span></td>
+    <td><span class="rbadge">${getErrorDescription(a.vendorCode, a.errorCode)}</span></td>
     <td style="color:var(--t2)">${a.status}</td>
     <td>${fmtS(a.duration)}</td>
   </tr>`).join('')||'<tr><td colspan="10" class="text-center" style="color:var(--t3);padding:28px">Sin datos con estos filtros</td></tr>');
@@ -905,10 +1161,7 @@ function dcFillCarg(){
   const fC=D.cargadores.filter(c=>!inst||c.facility===inst);
   const cs=[...new Set([...fA.map(a=>a.chargerName),...fC.map(c=>c.name)].filter(Boolean))].sort();
   const $s=$('#dc-carg');const cv=$s.val();$s.find('option:not(:first)').remove();cs.forEach(v=>$s.append(`<option value="${v}">${v}</option>`));if(cs.includes(cv))$s.val(cv);
-  // Cascade connectors
-  const cons=[...new Set(fA.map(a=>a.connector).filter(Boolean))].sort();
-  const $cn=$('#dc-conn');const cnv=$cn.val();$cn.find('option:not(:first)').remove();cons.forEach(v=>$cn.append(`<option value="${v}">${v}</option>`));if(cons.includes(cnv))$cn.val(cnv);
-  renderDC();
+  dcFillConn();
 }
 
 function dcFillConn(){
@@ -952,12 +1205,10 @@ function renderDE(){
     return true;
   });
 
-  // Group by vendorCode + connector
   const grps={};
   A.forEach(a=>{const k=a.vendorCode+'__'+a.connector;grps[k]=grps[k]||{vc:a.vendorCode,conn:a.connector,connType:a.connType,errCode:a.errorCode,rows:[],cargs:new Set(),insts:new Set()};grps[k].rows.push(a);grps[k].cargs.add(a.chargerName);grps[k].insts.add(a.facility);});
   const gSorted=Object.values(grps).sort((a,b)=>b.rows.length-a.rows.length);
 
-  // KPIs
   const vcC={}; A.forEach(a=>{vcC[a.vendorCode]=(vcC[a.vendorCode]||0)+1;});
   const topVC=Object.entries(vcC).sort((a,b)=>b[1]-a[1])[0];
   const totalDown=A.reduce((x,a)=>x+a.duration,0);
@@ -967,7 +1218,6 @@ function renderDE(){
   $('#de-down').text(fmtS(totalDown)||'—');
   $('#de-nc').text(allC.size||'—');
 
-  // Bubbles
   const bCol=['#e74c3c','#f39c12','#2f80ed','#27ae60','#8e44ad','#00d4ff','#e67e22','#16a085'];
   const bMax=gSorted[0]?.rows.length||1;
   $('#bubbles-de').html(gSorted.slice(0,8).map((g,i)=>{
@@ -978,16 +1228,14 @@ function renderDE(){
     return`<div class="bubble" style="width:${sz}px;height:${sz}px;background:${col}${isSel?'30':'15'};border-color:${col};color:${col};${isSel?'box-shadow:0 0 14px '+col+'55':''}" title="${g.vc} conn${g.conn}: ${cnt} casos · MTTR ${fmtS(avgD)}" onclick="deSel='${g.vc}';renderDE()"><div class="bubble-code">${g.vc}</div><div class="bubble-cnt">c${g.conn}</div><div class="bubble-cnt">${cnt}</div></div>`;
   }).join('')||'<div style="color:var(--t3);font-size:.75rem">Sin alarmas</div>');
 
-  // Temporal chart
   const selA=deSel?A.filter(a=>a.vendorCode===deSel):A;
   const dTemp={};
   selA.forEach(a=>{if(a.producedAt){const d=a.producedAt.toISOString().slice(0,10);dTemp[d]=(dTemp[d]||0)+1;}});
   const dTL=Object.keys(dTemp).sort();
   const c=gc();
   $('#de-sel-lbl').text(deSel||'todos los errores');
-  mkC('ch-de-t',{type:'line',data:{labels:dTL,datasets:[{label:deSel||'Errores',data:dTL.map(k=>dTemp[k]),borderColor:c.red,backgroundColor:'rgba(231,76,60,.1)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:c.red}]},options:{...chDef(),plugins:{legend:{labels:{color:c.text,font:{family:getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim(),size:10}}}}}});
+  mkC('ch-de-t',{type:'line',data:{labels:dTL,datasets:[{label:deSel||'Errores',data:dTL.map(k=>dTemp[k]),borderColor:c.red,backgroundColor:'rgba(231,76,60,.1)',fill:true,tension:.3,pointRadius:3,pointBackgroundColor:c.red}]},options:{...chDef()}});
 
-  // Table
   $('#tb-err').html(gSorted.map(g=>{
     const d3=g.rows.map(r=>r.duration).filter(d=>d>0);
     const totD=d3.reduce((x,y)=>x+y,0),avgD=d3.length?totD/d3.length:0;
@@ -995,9 +1243,9 @@ function renderDE(){
     const isSel=deSel===g.vc;
     return`<tr class="${isSel?'sel-row':''}">
       <td><span class="ebadge" onclick="deSel='${g.vc}';renderDE()">${g.vc}</span></td>
+      <td><span class="rbadge">${getErrorDescription(g.vc, g.errCode)}</span></td>
       <td style="color:var(--cyan)"><span class="ci c${Math.min(parseInt(g.conn)||0,3)}"></span>${g.conn}</td>
       <td style="font-family:'Syne',sans-serif;font-size:.65rem;color:var(--t2)">${g.connType}</td>
-      <td><span class="rbadge">${g.errCode}</span></td>
       <td style="font-weight:700">${g.rows.length}</td>
       <td>${g.cargs.size}</td><td>${g.insts.size}</td>
       <td>${fmtS(totD)}</td><td>${fmtS(avgD)}</td>
@@ -1014,7 +1262,6 @@ function activateTab(name){
   if(name==='vg')renderVG();if(name==='vf')renderFlota();if(name==='dc')renderDC();if(name==='de')renderDE();
 }
 $('.tbtn').on('click',function(){activateTab($(this).data('tab'));});
-// dc-mod onchange handled inline
 
 function rebuildAll(){
   const t=$('.tbtn.active').data('tab')||'vg';
@@ -1024,27 +1271,16 @@ function rebuildAll(){
    AI CHART ANALYSIS
 ════════════════════════════════════════ */
 async function analyzeChart(canvasId, chartLabel, btnEl){
-  // Get image from Chart.js canvas
   const canvas = document.getElementById(canvasId);
   if(!canvas){ alert('Gráfico no disponible'); return; }
-
-  // Open modal immediately with loading state
   document.getElementById('ai-modal-chart-name').textContent = chartLabel;
   const body = document.getElementById('ai-modal-body');
   body.textContent = 'Generando análisis…';
   body.className = 'thinking';
   document.getElementById('ai-modal-backdrop').classList.add('open');
   if(btnEl){ btnEl.classList.add('loading'); btnEl.textContent = '⏳ Analizando…'; }
-
-  // Capture chart as base64 PNG
   const imageData = canvas.toDataURL('image/png').split(',')[1];
-
-  // Build context string from loaded data
-  const alarmCount = D.alarmas.length;
-  const sessCount = D.sesiones.length;
-  const cargCount = D.cargadores.length;
-  const context = `Este dashboard es de operación y mantenimiento (O&M) de cargadores de vehículos eléctricos. Hay ${cargCount} cargadores, ${alarmCount} alarmas y ${sessCount} sesiones de recarga cargadas.`;
-
+  const context = `Este dashboard es de operación y mantenimiento (O&M) de cargadores de vehículos eléctricos. Hay ${D.cargadores.length} cargadores, ${D.alarmas.length} alarmas y ${D.sesiones.length} sesiones de recarga cargadas.`;
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -1055,31 +1291,20 @@ async function analyzeChart(canvasId, chartLabel, btnEl){
         messages: [{
           role: 'user',
           content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: 'image/png', data: imageData }
-            },
-            {
-              type: 'text',
-              text: `${context}\n\nAnaliza este gráfico titulado "${chartLabel}" del dashboard O&M. Proporciona:\n1. Una interpretación clara de lo que muestran los datos\n2. Los puntos más destacables o anomalías\n3. Una recomendación accionable concreta\n\nSé directo y conciso. Responde en español.`
-            }
+            { type: 'image', source: { type: 'base64', media_type: 'image/png', data: imageData } },
+            { type: 'text', text: `${context}\n\nAnaliza este gráfico titulado "${chartLabel}" del dashboard O&M. Proporciona:\n1. Una interpretación clara de lo que muestran los datos\n2. Los puntos más destacables o anomalías\n3. Una recomendación accionable concreta\n\nSé directo y conciso. Responde en español.` }
           ]
         }]
       })
     });
-
     const data = await response.json();
-    const text = data.content?.map(b => b.text || '').join('') || 'Sin respuesta.';
-    body.textContent = text;
+    body.textContent = data.content?.map(b => b.text || '').join('') || 'Sin respuesta.';
     body.className = '';
   } catch(err) {
     body.textContent = 'Error al conectar con la IA: ' + err.message;
     body.className = '';
   } finally {
-    if(btnEl){
-      btnEl.classList.remove('loading');
-      btnEl.innerHTML = '<span class="ai-spark">✦</span> Analizar con IA';
-    }
+    if(btnEl){ btnEl.classList.remove('loading'); btnEl.innerHTML = '<span class="ai-spark">✦</span> Analizar con IA'; }
   }
 }
 
