@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -433,7 +433,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
       <span>⚡ Sesiones</span><span class="lm">✓</span>
       <input type="file" accept=".xlsx,.xls" id="f-sesiones">
     </label>
-    <button class="btn-theme" id="btn-theme">☀️ Día</button>
+    <button class="btn-theme" id="btn-theme">🌙 Noche</button>
   </div>
 </div>
 
@@ -667,7 +667,7 @@ const DEFAULT_BG = {
   light: { bg:'#f0f4f8', bg2:'#ffffff', bgc:'#ffffff', bgch:'#f7fafc', brd:'#d1dce8' }
 };
 
-let currentBgTab = 'dark';
+let currentBgTab = 'light';
 
 const COLOR_VARS = [
   { id:'blue',   label:'Acento Primario' },
@@ -995,12 +995,12 @@ function computeObsWindow(){
   OBS.spanH=Math.max(0,(OBS.max-OBS.min)/3600000);
 }
 
-let isDark=true, deSel=null;
+let isDark=false, deSel=null;
 
 $('#btn-theme').on('click',()=>{
   isDark=!isDark;
   $('html').attr('data-theme',isDark?'dark':'light');
-  $('#btn-theme').text(isDark?'☀️ Día':'🌙 Noche');
+  $('#btn-theme').text(isDark?'🌙 Noche':'☀️ Día');
   rebuildAll();
 });
 
