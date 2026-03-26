@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,31 +19,35 @@
 }
 [data-theme="light"]{--bg:#f0f4f8;--bg2:#fff;--bgc:#fff;--bgch:#f7fafc;--brd:#d1dce8;--t1:#1a2332;--t2:#4a5568;--t3:#9aa5b4;--sh:0 4px 24px rgba(0,0,0,.08);--shs:0 2px 8px rgba(0,0,0,.06);--glow:none}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg);color:var(--t1);min-height:100vh;transition:background .3s,color .3s}
+/* IFRAME MODE: body fills container, no scroll on page level */
+html,body{height:100%;overflow:hidden;margin:0;padding:0}
+body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg);color:var(--t1);display:flex;flex-direction:column;transition:background .3s,color .3s}
 .mono{font-family:var(--font-mono)}
 
 /* ═══════════════════════════════════════
    CUSTOMIZATION PANEL
 ═══════════════════════════════════════ */
+/* IFRAME: custom-toggle convertido a botón compacto en el top-banner, no fixed */
 #custom-toggle{
-  position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1500;
   background:var(--blue);color:#fff;border:none;
-  border-radius:10px 0 0 10px;padding:10px 8px;
-  cursor:pointer;font-size:1.1rem;transition:all .2s;
-  box-shadow:-3px 0 16px rgba(47,128,237,.3);
-  writing-mode:initial;display:flex;flex-direction:column;gap:6px;align-items:center
+  border-radius:8px;padding:6px 10px;
+  cursor:pointer;font-size:.9rem;transition:all .2s;
+  display:flex;align-items:center;gap:5px
 }
-#custom-toggle:hover{background:var(--cyan);padding-left:12px;box-shadow:-5px 0 22px rgba(0,212,255,.4)}
-#custom-toggle .ct-label{font-size:.48rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Space Mono',monospace;color:rgba(255,255,255,.8)}
+#custom-toggle:hover{background:var(--cyan)}
+#custom-toggle .ct-label{font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Space Mono',monospace;color:rgba(255,255,255,.85)}
 
+/* IFRAME: panel de personalización como dropdown, no fixed/overlay */
 #custom-panel{
-  position:fixed;right:-360px;top:0;height:100vh;width:340px;z-index:1400;
-  background:var(--bg2);border-left:1px solid var(--brd);
-  box-shadow:-8px 0 40px rgba(0,0,0,.4);
-  transition:right .3s cubic-bezier(.4,0,.2,1);
-  display:flex;flex-direction:column;overflow:hidden
+  position:absolute;right:0;top:100%;width:320px;z-index:1400;
+  background:var(--bg2);border:1px solid var(--brd);border-radius:0 0 10px 10px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  transition:opacity .25s,transform .25s;
+  display:flex;flex-direction:column;overflow:hidden;
+  opacity:0;transform:translateY(-8px);pointer-events:none;
+  max-height:420px
 }
-#custom-panel.open{right:0}
+#custom-panel.open{opacity:1;transform:translateY(0);pointer-events:all}
 #custom-panel-header{
   background:linear-gradient(135deg,var(--blue),var(--cyan));
   padding:16px 18px;display:flex;align-items:center;justify-content:space-between;
@@ -157,13 +161,13 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 /* ═══════════════════════════════════════
    ORIGINAL STYLES
 ═══════════════════════════════════════ */
-#top-banner{background:var(--bg2);border-bottom:1px solid var(--brd);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:var(--shs);flex-wrap:wrap;gap:8px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem}
+#top-banner{background:var(--bg2);border-bottom:1px solid var(--brd);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1000;box-shadow:var(--shs);flex-wrap:wrap;gap:6px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.9rem}
 .bolt{color:var(--orange);animation:blink 2.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
 .badge-range{font-family:var(--font-mono);font-size:.67rem;color:var(--t3);background:var(--bg);border:1px solid var(--brd);padding:3px 10px;border-radius:20px;white-space:nowrap}
 .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn-up{display:flex;align-items:center;gap:5px;font-family:var(--font-main);font-weight:700;font-size:.75rem;padding:7px 13px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;white-space:nowrap}
+.btn-up{display:flex;align-items:center;gap:4px;font-family:var(--font-main);font-weight:700;font-size:.68rem;padding:5px 10px;border-radius:7px;border:none;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;white-space:nowrap}
 .btn-up input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .bc{background:var(--blue);color:#fff}.ba{background:var(--red);color:#fff}.bs{background:var(--green);color:#fff}
 .btn-up:hover{filter:brightness(1.15);transform:translateY(-1px)}
@@ -172,37 +176,37 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 .btn-theme{background:var(--bgc);border:1px solid var(--brd);color:var(--t1);padding:7px 13px;border-radius:8px;cursor:pointer;font-size:.8rem;font-family:var(--font-main);font-weight:600;transition:all .2s}
 .btn-theme:hover{background:var(--bgch)}
 
-#kpi-banner{background:var(--bg2);border-bottom:1px solid var(--brd);padding:12px 20px}
-.krow{display:grid;gap:1px;background:var(--brd);border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:6px;grid-template-columns:repeat(7,1fr)}
-.kcard{background:var(--bgc);padding:10px 13px;transition:background .15s}
+#kpi-banner{background:var(--bg2);border-bottom:1px solid var(--brd);padding:6px 14px;flex-shrink:0}
+.krow{display:grid;gap:1px;background:var(--brd);border:1px solid var(--brd);border-radius:8px;overflow:hidden;margin-bottom:4px;grid-template-columns:repeat(7,1fr)}
+.kcard{background:var(--bgc);padding:6px 10px;transition:background .15s}
 .kcard:hover{background:var(--bgch)}
-.klbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:3px}
-.kval{font-family:var(--font-mono);font-size:1.25rem;font-weight:700;color:var(--t1);line-height:1.1}
+.klbl{font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:2px}
+.kval{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--t1);line-height:1.1}
 .kval.g{color:var(--green)}.kval.r{color:var(--red)}.kval.o{color:var(--orange)}.kval.b{color:var(--blue)}.kval.c{color:var(--cyan)}
-.ksub{font-size:.57rem;color:var(--t3);margin-top:1px}
+.ksub{font-size:.5rem;color:var(--t3);margin-top:0}
 
-#tabs-nav{background:var(--bg2);border-bottom:1px solid var(--brd);padding:0 20px;display:flex;gap:2px;overflow-x:auto}
-.tbtn{background:none;border:none;cursor:pointer;font-family:var(--font-main);font-weight:600;font-size:.8rem;color:var(--t2);padding:11px 16px;border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+#tabs-nav{background:var(--bg2);border-bottom:1px solid var(--brd);padding:0 14px;display:flex;gap:2px;overflow-x:auto;flex-shrink:0}
+.tbtn{background:none;border:none;cursor:pointer;font-family:var(--font-main);font-weight:600;font-size:.72rem;color:var(--t2);padding:8px 13px;border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .tbtn:hover{color:var(--t1)}
 .tbtn.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tbtn.te.active{color:var(--red);border-bottom-color:var(--red)}
 .tdot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
 .te .tdot{background:var(--red)}
 
-#main{padding:18px}
+#main{padding:12px;flex:1;overflow-y:auto;overflow-x:hidden}
 .tp{display:none;animation:fin .25s ease}
 .tp.active{display:block}
 @keyframes fin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-.fbar{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.fbar{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
 .fg{display:flex;flex-direction:column;gap:3px}
 .fl{font-size:.57rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3)}
 .fsel,.finp{background:var(--bg);border:1px solid var(--brd);color:var(--t1);border-radius:6px;padding:5px 9px;font-family:var(--font-main);font-size:.76rem;min-width:110px;cursor:pointer;transition:border .2s}
 .fsel:focus,.finp:focus{outline:none;border-color:var(--blue)}
 
-.sh{display:flex;align-items:center;gap:7px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--brd)}
+.sh{display:flex;align-items:center;gap:7px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--brd)}
 
-.dc{background:var(--bgc);border:1px solid var(--brd);border-radius:10px;padding:16px;box-shadow:var(--shs);transition:box-shadow .2s;height:100%}
+.dc{background:var(--bgc);border:1px solid var(--brd);border-radius:8px;padding:12px;box-shadow:var(--shs);transition:box-shadow .2s;height:100%}
 .dc:hover{box-shadow:var(--glow),var(--sh)}
 .dct{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--t3);margin-bottom:12px}
 .cc{position:relative;width:100%}
@@ -232,7 +236,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 .ebadge:hover{background:rgba(47,128,237,.25)}
 .rbadge{display:inline-block;background:rgba(231,76,60,.12);color:var(--red);border:1px solid rgba(231,76,60,.3);border-radius:4px;padding:2px 6px;font-size:.6rem;font-family:var(--font-mono);font-weight:700}
 
-.bscatter{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:14px;min-height:140px}
+.bscatter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:10px;min-height:120px}
 .bubble{border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s,box-shadow .2s;border:2px solid transparent}
 .bubble:hover{transform:scale(1.08)}
 .bubble-code{font-family:var(--font-mono);font-weight:700;font-size:.56rem;text-align:center}
@@ -246,7 +250,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 .cleg{display:flex;gap:12px;font-size:.68rem;color:var(--t2);padding:5px 0}
 .empty{text-align:center;padding:50px 20px;color:var(--t3)}
 .empty .ei{font-size:2.5rem;margin-bottom:10px;opacity:.4}
-.tw{overflow-x:auto;max-height:380px;overflow-y:auto}
+.tw{overflow-x:auto;max-height:300px;overflow-y:auto}
 .sel-row{background:rgba(47,128,237,.08)!important}
 
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -274,9 +278,9 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 .btn-ai.loading{opacity:.6;pointer-events:none}
 .btn-ai .ai-spark{font-size:.75rem;line-height:1}
 
-#ai-modal-backdrop{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center}
+#ai-modal-backdrop{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);align-items:center;justify-content:center}
 #ai-modal-backdrop.open{display:flex}
-#ai-modal{background:var(--bgc);border:1px solid var(--brd);border-radius:14px;padding:24px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:fin .22s ease}
+#ai-modal{background:var(--bgc);border:1px solid var(--brd);border-radius:12px;padding:18px;max-width:520px;width:90%;max-height:70vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:fin .22s ease}
 #ai-modal-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 #ai-modal-body{font-size:.8rem;line-height:1.65;color:var(--t1);white-space:pre-wrap;font-family:var(--font-main)}
 #ai-modal-body.thinking{color:var(--t3);font-style:italic}
@@ -286,133 +290,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-   CUSTOMIZATION TOGGLE BUTTON
-═══════════════════════════════════════ -->
-<button id="custom-toggle" onclick="toggleCustomPanel()" title="Personalizar apariencia">
-  <span style="font-size:1.2rem">🎨</span>
-  <span class="ct-label">Style</span>
-</button>
-
-<!-- ═══════════════════════════════════════
-   CUSTOMIZATION PANEL
-═══════════════════════════════════════ -->
-<div id="custom-panel">
-  <div id="custom-panel-header">
-    <h3>🎨 Personalización</h3>
-    <button id="custom-panel-close" onclick="toggleCustomPanel()">✕</button>
-  </div>
-  <div id="custom-panel-body">
-
-    <!-- LIVE PREVIEW -->
-    <div class="cp-preview">
-      <div class="cp-preview-label">Vista previa</div>
-      <div class="cp-preview-demo">
-        <span class="cp-preview-text" id="prev-text">Cosmos Cloud</span>
-        <span class="cp-preview-mono" id="prev-mono">99.8%</span>
-        <span class="cp-preview-badge">OK</span>
-      </div>
-    </div>
-
-    <!-- PRESETS -->
-    <div class="cp-section">
-      <div class="cp-section-title">⚡ Temas Predefinidos</div>
-      <div class="cp-presets" id="cp-presets-grid"></div>
-    </div>
-
-    <!-- COLORES PRINCIPALES -->
-    <div class="cp-section">
-      <div class="cp-section-title">🎨 Colores de Acento</div>
-      <div class="cp-color-grid" id="cp-color-grid"></div>
-    </div>
-
-    <!-- FONDOS -->
-    <div class="cp-section">
-      <div class="cp-section-title">🌑 Colores de Fondo</div>
-      <!-- Mode tabs -->
-      <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--brd);border-radius:7px;overflow:hidden">
-        <button id="bg-tab-dark" onclick="switchBgTab('dark')"
-          style="flex:1;padding:6px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.65rem;transition:all .15s;background:var(--blue);color:#fff">
-          🌙 Noche
-        </button>
-        <button id="bg-tab-light" onclick="switchBgTab('light')"
-          style="flex:1;padding:6px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.65rem;transition:all .15s;background:var(--bg);color:var(--t2)">
-          ☀️ Día
-        </button>
-      </div>
-      <div id="cp-bg-grid"></div>
-    </div>
-
-    <!-- TIPOGRAFÍA -->
-    <div class="cp-section">
-      <div class="cp-section-title">✏️ Tipografía</div>
-      <div class="cp-row">
-        <span class="cp-label">Fuente principal</span>
-      </div>
-      <select class="cp-font-select" id="cp-font-main" onchange="applyFont()">
-        <option value="'Syne',sans-serif">Syne (actual)</option>
-        <option value="'Outfit',sans-serif">Outfit</option>
-        <option value="'Manrope',sans-serif">Manrope</option>
-        <option value="'DM Sans',sans-serif">DM Sans</option>
-        <option value="'Inter',sans-serif">Inter</option>
-      </select>
-      <div class="cp-row" style="margin-top:10px">
-        <span class="cp-label">Fuente monospace</span>
-      </div>
-      <select class="cp-font-select" id="cp-font-mono" onchange="applyFont()">
-        <option value="'Space Mono',monospace">Space Mono (actual)</option>
-        <option value="'JetBrains Mono',monospace">JetBrains Mono</option>
-        <option value="'IBM Plex Mono',monospace">IBM Plex Mono</option>
-      </select>
-    </div>
-
-    <!-- TAMAÑO DE TEXTO -->
-    <div class="cp-section">
-      <div class="cp-section-title">📐 Tamaño y Densidad</div>
-      <div class="cp-row">
-        <span class="cp-label">Tamaño de texto base</span>
-        <div class="cp-slider-wrap">
-          <input type="range" class="cp-slider" id="cp-fontsize" min="12" max="18" value="16" step="1" oninput="applySize()">
-          <span class="cp-slider-val" id="cp-fontsize-val">16px</span>
-        </div>
-      </div>
-      <div class="cp-row">
-        <span class="cp-label">Radio de bordes</span>
-        <div class="cp-slider-wrap">
-          <input type="range" class="cp-slider" id="cp-radius" min="0" max="20" value="10" step="1" oninput="applyRadius()">
-          <span class="cp-slider-val" id="cp-radius-val">10px</span>
-        </div>
-      </div>
-      <div class="cp-row">
-        <span class="cp-label">Padding de tarjetas</span>
-        <div class="cp-slider-wrap">
-          <input type="range" class="cp-slider" id="cp-padding" min="8" max="28" value="16" step="2" oninput="applyPadding()">
-          <span class="cp-slider-val" id="cp-padding-val">16px</span>
-        </div>
-      </div>
-      <div class="cp-row">
-        <span class="cp-label">Compactness KPI</span>
-        <div class="cp-slider-wrap">
-          <input type="range" class="cp-slider" id="cp-kpisize" min="0.9" max="1.8" value="1.25" step="0.05" oninput="applyKpiSize()">
-          <span class="cp-slider-val" id="cp-kpisize-val">1.25</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACCIONES -->
-    <div class="cp-section">
-      <div class="cp-section-title">💾 Guardar / Importar</div>
-      <button class="cp-btn cp-btn-export" onclick="exportTheme()">⬇️ Exportar tema (.json)</button>
-      <label class="cp-btn cp-btn-import">
-        ⬆️ Importar tema (.json)
-        <input type="file" accept=".json" onchange="importTheme(this)">
-      </label>
-      <button class="cp-btn cp-btn-reset" onclick="resetTheme()">↺ Restaurar valores por defecto</button>
-    </div>
-
-  </div>
-</div>
-
+<!-- CUSTOMIZATION PANEL — ahora dentro del top-banner anchor (iframe-safe, no fixed) -->
 <!-- TOP BANNER -->
 <div id="top-banner">
   <div class="brand">
@@ -433,7 +311,102 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
       <span>⚡ Sesiones</span><span class="lm">✓</span>
       <input type="file" accept=".xlsx,.xls" id="f-sesiones">
     </label>
-    <button class="btn-theme" id="btn-theme">🌙 Noche</button>
+    <button class="btn-theme" id="btn-theme">☀️ Día</button>
+    <!-- Panel de personalización integrado en el banner (no fixed, iframe-safe) -->
+    <div style="position:relative">
+      <button id="custom-toggle" onclick="toggleCustomPanel()" title="Personalizar apariencia">
+        <span style="font-size:.9rem">🎨</span>
+        <span class="ct-label">Style</span>
+      </button>
+      <div id="custom-panel-anchor" style="position:absolute;right:0;top:100%;z-index:1400">
+        <div id="custom-panel">
+          <div id="custom-panel-header">
+            <h3>🎨 Personalización</h3>
+            <button id="custom-panel-close" onclick="toggleCustomPanel()">✕</button>
+          </div>
+          <div id="custom-panel-body">
+            <div class="cp-preview">
+              <div class="cp-preview-label">Vista previa</div>
+              <div class="cp-preview-demo">
+                <span class="cp-preview-text" id="prev-text">Cosmos Cloud</span>
+                <span class="cp-preview-mono" id="prev-mono">99.8%</span>
+                <span class="cp-preview-badge">OK</span>
+              </div>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">⚡ Temas Predefinidos</div>
+              <div class="cp-presets" id="cp-presets-grid"></div>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">🎨 Colores de Acento</div>
+              <div class="cp-color-grid" id="cp-color-grid"></div>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">🌑 Colores de Fondo</div>
+              <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--brd);border-radius:7px;overflow:hidden">
+                <button id="bg-tab-dark" onclick="switchBgTab('dark')" style="flex:1;padding:6px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.65rem;transition:all .15s;background:var(--blue);color:#fff">🌙 Noche</button>
+                <button id="bg-tab-light" onclick="switchBgTab('light')" style="flex:1;padding:6px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:.65rem;transition:all .15s;background:var(--bg);color:var(--t2)">☀️ Día</button>
+              </div>
+              <div id="cp-bg-grid"></div>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">✏️ Tipografía</div>
+              <div class="cp-row"><span class="cp-label">Fuente principal</span></div>
+              <select class="cp-font-select" id="cp-font-main" onchange="applyFont()">
+                <option value="'Syne',sans-serif">Syne (actual)</option>
+                <option value="'Outfit',sans-serif">Outfit</option>
+                <option value="'Manrope',sans-serif">Manrope</option>
+                <option value="'DM Sans',sans-serif">DM Sans</option>
+                <option value="'Inter',sans-serif">Inter</option>
+              </select>
+              <div class="cp-row" style="margin-top:10px"><span class="cp-label">Fuente monospace</span></div>
+              <select class="cp-font-select" id="cp-font-mono" onchange="applyFont()">
+                <option value="'Space Mono',monospace">Space Mono (actual)</option>
+                <option value="'JetBrains Mono',monospace">JetBrains Mono</option>
+                <option value="'IBM Plex Mono',monospace">IBM Plex Mono</option>
+              </select>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">📐 Tamaño y Densidad</div>
+              <div class="cp-row">
+                <span class="cp-label">Tamaño texto</span>
+                <div class="cp-slider-wrap">
+                  <input type="range" class="cp-slider" id="cp-fontsize" min="12" max="18" value="16" step="1" oninput="applySize()">
+                  <span class="cp-slider-val" id="cp-fontsize-val">16px</span>
+                </div>
+              </div>
+              <div class="cp-row">
+                <span class="cp-label">Radio bordes</span>
+                <div class="cp-slider-wrap">
+                  <input type="range" class="cp-slider" id="cp-radius" min="0" max="20" value="10" step="1" oninput="applyRadius()">
+                  <span class="cp-slider-val" id="cp-radius-val">10px</span>
+                </div>
+              </div>
+              <div class="cp-row">
+                <span class="cp-label">Padding tarjetas</span>
+                <div class="cp-slider-wrap">
+                  <input type="range" class="cp-slider" id="cp-padding" min="8" max="28" value="16" step="2" oninput="applyPadding()">
+                  <span class="cp-slider-val" id="cp-padding-val">16px</span>
+                </div>
+              </div>
+              <div class="cp-row">
+                <span class="cp-label">Compactness KPI</span>
+                <div class="cp-slider-wrap">
+                  <input type="range" class="cp-slider" id="cp-kpisize" min="0.9" max="1.8" value="1.25" step="0.05" oninput="applyKpiSize()">
+                  <span class="cp-slider-val" id="cp-kpisize-val">1.25</span>
+                </div>
+              </div>
+            </div>
+            <div class="cp-section">
+              <div class="cp-section-title">💾 Guardar / Importar</div>
+              <button class="cp-btn cp-btn-export" onclick="exportTheme()">⬇️ Exportar tema (.json)</button>
+              <label class="cp-btn cp-btn-import">⬆️ Importar tema (.json)<input type="file" accept=".json" onchange="importTheme(this)"></label>
+              <button class="cp-btn cp-btn-reset" onclick="resetTheme()">↺ Restaurar por defecto</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -481,23 +454,23 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
     <div class="fg"><span class="fl">&nbsp;</span><button class="btn-up bc" style="position:static" onclick="renderVG()">Aplicar</button></div>
   </div>
   <div class="sh"><span style="color:var(--orange)">⚡</span> Operación &amp; Mantenimiento</div>
-  <div class="row g-3 mb-3">
-    <div class="col-lg-7"><div class="dc"><div class="dct">Alarmas por Instalación</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-ai','Alarmas por Instalación',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:200px"><canvas id="ch-ai"></canvas></div></div></div></div>
+  <div class="row g-2 mb-2">
+    <div class="col-lg-7"><div class="dc"><div class="dct">Alarmas por Instalación</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-ai','Alarmas por Instalación',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:160px"><canvas id="ch-ai"></canvas></div></div></div></div>
     <div class="col-lg-5"><div class="dc"><div class="dct">Por Modelo de Cargador</div><div id="mod-list" style="padding-top:4px"></div></div></div>
   </div>
-  <div class="row g-3 mb-3">
-    <div class="col-lg-4"><div class="dc"><div class="dct">Distribución por Tipo de Conector</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-conn','Distribución Conectores',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:200px"><canvas id="ch-conn"></canvas></div></div></div></div>
+  <div class="row g-2 mb-2">
+    <div class="col-lg-4"><div class="dc"><div class="dct">Distribución por Tipo de Conector</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-conn','Distribución Conectores',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:160px"><canvas id="ch-conn"></canvas></div></div></div></div>
     <div class="col-lg-4"><div class="dc"><div class="dct">Top Errores por Vendor Code</div><div class="bscatter" id="bubbles-vg"></div></div></div>
-    <div class="col-lg-4"><div class="dc"><div class="dct">Estado Cargadores</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-status','Estado Cargadores',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:200px"><canvas id="ch-status"></canvas></div></div></div></div>
+    <div class="col-lg-4"><div class="dc"><div class="dct">Estado Cargadores</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-status','Estado Cargadores',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:160px"><canvas id="ch-status"></canvas></div></div></div></div>
   </div>
   <div class="sh"><span style="color:var(--orange)">⚡</span> Negocio y Uso</div>
-  <div class="row g-3 mb-3">
-    <div class="col-lg-8"><div class="dc"><div class="dct">Evolución Diaria de Energía (kWh)</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-en-d','Evolución Energía',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:200px"><canvas id="ch-en-d"></canvas></div></div></div></div>
-    <div class="col-lg-4"><div class="dc"><div class="dct">Top Instalaciones por Energía (kWh)</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-top-i','Top Instalaciones Energía',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:200px"><canvas id="ch-top-i"></canvas></div></div></div></div>
+  <div class="row g-2 mb-2">
+    <div class="col-lg-8"><div class="dc"><div class="dct">Evolución Diaria de Energía (kWh)</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-en-d','Evolución Energía',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:160px"><canvas id="ch-en-d"></canvas></div></div></div></div>
+    <div class="col-lg-4"><div class="dc"><div class="dct">Top Instalaciones por Energía (kWh)</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-top-i','Top Instalaciones Energía',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:160px"><canvas id="ch-top-i"></canvas></div></div></div></div>
   </div>
-  <div class="row g-3 mb-3">
-    <div class="col-lg-6"><div class="dc"><div class="dct">Sesiones por Hora del Día</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-hr','Sesiones por Hora',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:175px"><canvas id="ch-hr"></canvas></div></div></div></div>
-    <div class="col-lg-6"><div class="dc"><div class="dct">Energía por Charge Point</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-cp','Energía por Charge Point',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:175px"><canvas id="ch-cp"></canvas></div></div></div></div>
+  <div class="row g-2 mb-2">
+    <div class="col-lg-6"><div class="dc"><div class="dct">Sesiones por Hora del Día</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-hr','Sesiones por Hora',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:150px"><canvas id="ch-hr"></canvas></div></div></div></div>
+    <div class="col-lg-6"><div class="dc"><div class="dct">Energía por Charge Point</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-cp','Energía por Charge Point',this)" title="Analizar con IA"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:150px"><canvas id="ch-cp"></canvas></div></div></div></div>
   </div>
 </div>
 
@@ -543,7 +516,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
     <div class="fg"><span class="fl">Desde</span><input type="date" class="finp" id="dc-desde" onchange="renderDC()"></div>
     <div class="fg"><span class="fl">Hasta</span><input type="date" class="finp" id="dc-hasta" onchange="renderDC()"></div>
   </div>
-  <div class="row g-3 mb-3">
+  <div class="row g-2 mb-2">
     <div class="col-lg-7">
       <div class="dc">
         <div class="dct d-flex align-items-center gap-3">
@@ -553,10 +526,10 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
             <label style="cursor:pointer"><input type="radio" name="dc-ct" value="line" onchange="renderDCCharts()"> Línea</label>
           </span>
         </div>
-        <div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-dc-t','Evolución Temporal',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:210px"><canvas id="ch-dc-t"></canvas></div></div>
+        <div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-dc-t','Evolución Temporal',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:170px"><canvas id="ch-dc-t"></canvas></div></div>
       </div>
     </div>
-    <div class="col-lg-5"><div class="dc"><div class="dct">Patrón Horario de Errores</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-dc-h','Patrón Horario',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:210px"><canvas id="ch-dc-h"></canvas></div></div></div></div>
+    <div class="col-lg-5"><div class="dc"><div class="dct">Patrón Horario de Errores</div><div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-dc-h','Patrón Horario',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:170px"><canvas id="ch-dc-h"></canvas></div></div></div></div>
   </div>
   <div class="dc">
     <div class="dct">Log de Eventos (últimos 50)</div>
@@ -585,12 +558,12 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
     <div class="fg"><span class="fl">Hasta</span><input type="date" class="finp" id="de-hasta" onchange="renderDE()"></div>
     <div class="fg"><span class="fl">&nbsp;</span><button class="btn-up ba" style="position:static" onclick="renderDE()">Aplicar</button></div>
   </div>
-  <div class="row g-3 mb-3">
-    <div class="col-lg-4"><div class="dc"><div class="dct">Frecuencia vs Duración</div><div class="bscatter" id="bubbles-de" style="min-height:220px"></div></div></div>
+  <div class="row g-2 mb-2">
+    <div class="col-lg-4"><div class="dc"><div class="dct">Frecuencia vs Duración</div><div class="bscatter" id="bubbles-de" style="min-height:170px"></div></div></div>
     <div class="col-lg-8">
       <div class="dc">
         <div class="dct">Evolución Temporal — <span id="de-sel-lbl" style="color:var(--red)">todos los errores</span></div>
-        <div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-de-t','Evolución Errores',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:220px"><canvas id="ch-de-t"></canvas></div></div>
+        <div class="ai-chart-wrap"><button class="btn-ai" onclick="analyzeChart('ch-de-t','Evolución Errores',this)"><span class="ai-spark">✦</span> Analizar con IA</button><div class="cc" style="height:170px"><canvas id="ch-de-t"></canvas></div></div>
       </div>
     </div>
   </div>
@@ -667,7 +640,7 @@ const DEFAULT_BG = {
   light: { bg:'#f0f4f8', bg2:'#ffffff', bgc:'#ffffff', bgch:'#f7fafc', brd:'#d1dce8' }
 };
 
-let currentBgTab = 'light';
+let currentBgTab = 'dark';
 
 const COLOR_VARS = [
   { id:'blue',   label:'Acento Primario' },
@@ -905,6 +878,15 @@ function toggleCustomPanel(){
   panel.classList.toggle('open');
 }
 
+// Cerrar panel al hacer click fuera (iframe-safe)
+document.addEventListener('click', function(e){
+  const panel = document.getElementById('custom-panel');
+  const toggle = document.getElementById('custom-toggle');
+  if(panel && panel.classList.contains('open') && !panel.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)){
+    panel.classList.remove('open');
+  }
+});
+
 function exportTheme(){
   const blob = new Blob([JSON.stringify(currentTheme, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -995,12 +977,12 @@ function computeObsWindow(){
   OBS.spanH=Math.max(0,(OBS.max-OBS.min)/3600000);
 }
 
-let isDark=false, deSel=null;
+let isDark=true, deSel=null;
 
 $('#btn-theme').on('click',()=>{
   isDark=!isDark;
   $('html').attr('data-theme',isDark?'dark':'light');
-  $('#btn-theme').text(isDark?'🌙 Noche':'☀️ Día');
+  $('#btn-theme').text(isDark?'☀️ Día':'🌙 Noche');
   rebuildAll();
 });
 
