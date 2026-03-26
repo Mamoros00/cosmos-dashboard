@@ -284,6 +284,7 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 #ai-modal-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 #ai-modal-body{font-size:.8rem;line-height:1.65;color:var(--t1);white-space:pre-wrap;font-family:var(--font-main)}
 #ai-modal-body.thinking{color:var(--t3);font-style:italic}
+#ai-modal-body.error{color:var(--red);font-style:italic}
 .ai-modal-close{background:var(--bg);border:1px solid var(--brd);color:var(--t2);border-radius:6px;padding:3px 10px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:var(--font-main);transition:all .15s}
 .ai-modal-close:hover{color:var(--t1);border-color:var(--t2)}
 </style>
@@ -1309,23 +1310,146 @@ $('.tbtn').on('click',function(){activateTab($(this).data('tab'));});
 
 function rebuildAll(){const t=$('.tbtn.active').data('tab')||'vg';activateTab(t);}
 
-async function analyzeChart(canvasId,chartLabel,btnEl){
-  const canvas=document.getElementById(canvasId);if(!canvas){alert('Gráfico no disponible');return;}
-  document.getElementById('ai-modal-chart-name').textContent=chartLabel;
-  const body=document.getElementById('ai-modal-body');body.textContent='Generando análisis…';body.className='thinking';
-  document.getElementById('ai-modal-backdrop').classList.add('open');
-  if(btnEl){btnEl.classList.add('loading');btnEl.textContent='⏳ Analizando…';}
-  const imageData=canvas.toDataURL('image/png').split(',')[1];
-  const context=`Este dashboard es de operación y mantenimiento (O&M) de cargadores de vehículos eléctricos. Hay ${D.cargadores.length} cargadores, ${D.alarmas.length} alarmas y ${D.sesiones.length} sesiones de recarga cargadas.`;
-  try{
-    const response=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/png',data:imageData}},{type:'text',text:`${context}\n\nAnaliza este gráfico titulado "${chartLabel}" del dashboard O&M. Proporciona:\n1. Una interpretación clara de lo que muestran los datos\n2. Los puntos más destacables o anomalías\n3. Una recomendación accionable concreta\n\nSé directo y conciso. Responde en español.`}]}]})});
-    const data=await response.json();
-    body.textContent=data.content?.map(b=>b.text||'').join('')||'Sin respuesta.';body.className='';
-  }catch(err){body.textContent='Error al conectar con la IA: '+err.message;body.className='';}
-  finally{if(btnEl){btnEl.classList.remove('loading');btnEl.innerHTML='<span class="ai-spark">✦</span> Analizar con IA';}}
+/* ═══════════════════════════════════════════════════
+   AI ANALYSIS — PROXY BACKEND (no API keys en frontend)
+   Cambia AI_BACKEND_URL por la URL real de tu proxy.
+   El proxy recibe el payload y llama a la IA server-side.
+═══════════════════════════════════════════════════ */
+const AI_BACKEND_URL = 'https://damp-union-a6be.mamoros.workers.dev/';
+
+// Alias público para acceso externo si se necesita
+const chartsById = CH;
+
+/**
+ * Extrae labels y datasets de una instancia Chart.js guardada en CH.
+ * Devuelve null si el chart no existe o no tiene datos.
+ */
+function getChartDataForAI(canvasId) {
+  const chart = CH[canvasId];
+  if (!chart || !chart.data) return null;
+  try {
+    return {
+      labels: (chart.data.labels || []).map(String),
+      datasets: (chart.data.datasets || []).map(ds => ({
+        label: ds.label || '',
+        data: (ds.data || []).map(v => (typeof v === 'object' && v !== null) ? (v.y ?? v.x ?? null) : (Number.isFinite(v) ? v : null))
+      }))
+    };
+  } catch(e) {
+    return null;
+  }
 }
 
-function closeAIModal(e){if(e&&e.target!==document.getElementById('ai-modal-backdrop'))return;document.getElementById('ai-modal-backdrop').classList.remove('open');}
+/**
+ * Construye el contexto del dashboard a partir de las variables globales D.
+ */
+function getDashboardContext() {
+  try {
+    return {
+      cargadores: D?.cargadores?.length ?? 0,
+      alarmas:    D?.alarmas?.length    ?? 0,
+      sesiones:   D?.sesiones?.length   ?? 0
+    };
+  } catch(e) {
+    return { cargadores: 0, alarmas: 0, sesiones: 0 };
+  }
+}
+
+/**
+ * Analiza un gráfico enviando imagen + datos al backend proxy.
+ * No contiene API keys. No usa window.open ni popups.
+ */
+async function analyzeChart(canvasId, chartLabel, btnEl) {
+  // — Obtener canvas
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) {
+    console.warn('[IA] Canvas no encontrado:', canvasId);
+    return;
+  }
+
+  // — Abrir modal en estado loading
+  const backdrop = document.getElementById('ai-modal-backdrop');
+  const body     = document.getElementById('ai-modal-body');
+  const nameEl   = document.getElementById('ai-modal-chart-name');
+
+  if (nameEl) nameEl.textContent = chartLabel;
+  if (body)   { body.textContent = 'Generando análisis…'; body.className = 'thinking'; }
+  if (backdrop) backdrop.classList.add('open');
+
+  // — Estado botón: loading
+  if (btnEl) {
+    btnEl.classList.add('loading');
+    btnEl.disabled = true;
+    btnEl.innerHTML = '⏳ Analizando…';
+  }
+
+  // — Capturar imagen del canvas como base64 (sin prefijo data:…)
+  let imageBase64 = '';
+  try {
+    imageBase64 = canvas.toDataURL('image/png').split(',')[1] || '';
+  } catch(e) {
+    console.warn('[IA] No se pudo capturar el canvas:', e.message);
+  }
+
+  // — Extraer datos estructurados del chart
+  const chartData = getChartDataForAI(canvasId);
+
+  // — Contexto del dashboard
+  const dashboardContext = getDashboardContext();
+
+  // — Payload para el backend
+  const payload = {
+    chartId:          canvasId,
+    chartLabel:       chartLabel,
+    imageBase64:      imageBase64,
+    chartData:        chartData,
+    dashboardContext: dashboardContext
+  };
+
+  try {
+    const res = await fetch(AI_BACKEND_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      let errMsg = `Error ${res.status}`;
+      try { const j = await res.json(); errMsg = j.error || j.message || errMsg; } catch(_){}
+      throw new Error(errMsg);
+    }
+
+    const data = await res.json();
+
+    // El backend puede devolver { analysis: "texto" } o { content: [{text:"..."}] }
+    const text =
+      data?.analysis ||
+      data?.text ||
+      (Array.isArray(data?.content) ? data.content.map(b => b.text || '').join('') : '') ||
+      'Sin respuesta del servidor.';
+
+    if (body) { body.textContent = text; body.className = ''; }
+
+  } catch(err) {
+    console.error('[IA] Error al llamar al backend:', err);
+    if (body) {
+      body.textContent = `No se pudo obtener el análisis.\n\n${err.message}`;
+      body.className = 'error';
+    }
+  } finally {
+    // — Restaurar botón
+    if (btnEl) {
+      btnEl.classList.remove('loading');
+      btnEl.disabled = false;
+      btnEl.innerHTML = '<span class="ai-spark">✦</span> Analizar con IA';
+    }
+  }
+}
+
+function closeAIModal(e) {
+  if (e && e.target !== document.getElementById('ai-modal-backdrop')) return;
+  document.getElementById('ai-modal-backdrop').classList.remove('open');
+}
 </script>
 </body>
 </html>
