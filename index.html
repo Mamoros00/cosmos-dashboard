@@ -302,6 +302,130 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 #ai-modal-body.error{color:var(--red);font-style:italic}
 .ai-modal-close{background:var(--bg);border:1px solid var(--brd);color:var(--t2);border-radius:6px;padding:3px 10px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:var(--font-main);transition:all .15s}
 .ai-modal-close:hover{color:var(--t1);border-color:var(--t2)}
+
+/* ═══════════════════════════════════════
+   MULTI-COMPANY DASHBOARD
+═══════════════════════════════════════ */
+
+/* Botón Cargar Todo */
+#btn-load-all{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font-main);font-weight:700;font-size:.72rem;
+  padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;white-space:nowrap;transition:all .22s;
+  box-shadow:0 0 0 rgba(47,128,237,0)
+}
+#btn-load-all:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 4px 16px rgba(47,128,237,.35)}
+#btn-load-all:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+#btn-load-all .bla-icon{font-size:.9rem}
+
+/* Barra de progreso de carga global */
+#load-progress-bar{
+  height:3px;background:var(--brd);overflow:hidden;flex-shrink:0;
+  display:none;
+}
+#load-progress-bar.visible{display:block}
+#load-progress-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+  transition:width .4s ease;
+}
+
+/* Panel de compañías (cards + comparativa + detalle) */
+#company-panel{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:12px;display:none;flex-direction:column;gap:12px;
+}
+#company-panel.visible{display:flex}
+
+/* Grid de cards resumen */
+#company-cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:10px;
+}
+
+/* Card individual de compañía */
+.co-card{
+  background:var(--bgc);border:2px solid var(--brd);border-radius:12px;
+  padding:14px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;
+}
+.co-card::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  background:linear-gradient(135deg,var(--blue)08,var(--cyan)05);
+  transition:opacity .22s;
+}
+.co-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:var(--sh)}
+.co-card:hover::before{opacity:1}
+.co-card.active{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.15),var(--sh)}
+.co-card.loading-card{opacity:.7;pointer-events:none}
+.co-card.error-card{border-color:var(--red);opacity:.8}
+
+.co-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.co-card-name{font-weight:800;font-size:.92rem;color:var(--t1)}
+.co-card-badge{font-family:var(--font-mono);font-size:.52rem;font-weight:700;padding:2px 7px;border-radius:20px;border:1px solid}
+.co-card-badge.ok{color:var(--green);border-color:rgba(39,174,96,.4);background:rgba(39,174,96,.1)}
+.co-card-badge.loading{color:var(--blue);border-color:rgba(47,128,237,.4);background:rgba(47,128,237,.1);animation:cs-pulse 1.2s infinite}
+.co-card-badge.error{color:var(--red);border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.1)}
+
+.co-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.co-kpi{background:var(--bg);border-radius:7px;padding:7px 9px}
+.co-kpi-lbl{font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:2px}
+.co-kpi-val{font-family:var(--font-mono);font-size:.82rem;font-weight:700;color:var(--t1)}
+.co-kpi-val.g{color:var(--green)}.co-kpi-val.r{color:var(--red)}.co-kpi-val.o{color:var(--orange)}.co-kpi-val.b{color:var(--blue)}.co-kpi-val.c{color:var(--cyan)}
+
+.co-card-footer{
+  margin-top:10px;padding-top:8px;border-top:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.58rem;color:var(--t3)
+}
+.co-card-hint{font-size:.55rem;color:var(--blue);font-weight:700}
+
+/* Comparativa section */
+#company-compare{display:none;flex-direction:column;gap:10px}
+#company-compare.visible{display:flex}
+.compare-header{
+  display:flex;align-items:center;gap:10px;
+  font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);
+  padding-bottom:6px;border-bottom:1px solid var(--brd)
+}
+.compare-header button{
+  margin-left:auto;font-family:var(--font-main);font-weight:700;font-size:.6rem;
+  padding:3px 10px;border-radius:6px;border:1px solid var(--brd);
+  background:var(--bg);color:var(--t2);cursor:pointer;transition:all .15s
+}
+.compare-header button:hover{border-color:var(--blue);color:var(--blue)}
+
+.compare-table{width:100%;border-collapse:collapse;font-size:.72rem}
+.compare-table thead th{
+  font-size:.54rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--t3);padding:7px 10px;border-bottom:1px solid var(--brd);
+  text-align:left;background:var(--bgc);position:sticky;top:0;white-space:nowrap
+}
+.compare-table tbody tr{border-bottom:1px solid var(--brd);transition:background .12s;cursor:pointer}
+.compare-table tbody tr:hover{background:var(--bgch)}
+.compare-table tbody tr.active-row{background:rgba(47,128,237,.08)}
+.compare-table tbody td{padding:8px 10px;font-family:var(--font-mono);font-size:.68rem;color:var(--t1)}
+.compare-table tbody td:first-child{font-family:var(--font-main);font-weight:700;font-size:.76rem}
+.best-val{color:var(--green);font-weight:700}
+.worst-val{color:var(--red)}
+
+/* Detail section */
+#company-detail{display:none;flex-direction:column;gap:0}
+#company-detail.visible{display:flex}
+.detail-back{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  font-size:.65rem;font-weight:700;color:var(--blue);cursor:pointer;
+  padding:6px 10px;border-radius:7px;border:1px solid var(--brd);
+  background:var(--bgc);width:fit-content;transition:all .15s
+}
+.detail-back:hover{background:var(--bgch);border-color:var(--blue)}
+.detail-company-name{
+  font-weight:800;font-size:1.1rem;color:var(--t1);margin-bottom:12px;
+  display:flex;align-items:center;gap:10px
+}
+.detail-company-dot{width:12px;height:12px;border-radius:50%;background:var(--cyan)}
 </style>
 </head>
 <body>
@@ -340,6 +464,9 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
       </select>
       <span id="company-status" class="company-status"></span>
     </div>
+    <button id="btn-load-all" title="Descargar todas las compañías del servidor interno">
+      <span class="bla-icon">⬇️</span> Cargar todo
+    </button>
     <!-- FIN CARGA AUTOMÁTICA POR COMPAÑÍA -->
     <button class="btn-theme" id="btn-theme">☀️ Día</button>
     <!-- Panel de personalización integrado en el banner (no fixed, iframe-safe) -->
@@ -441,6 +568,8 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 </div>
 
 <!-- KPI BANNER -->
+<div id="load-progress-bar"><div id="load-progress-fill"></div></div>
+
 <div id="kpi-banner">
   <div class="krow">
     <div class="kcard"><div class="klbl">Eventos Totales</div><div class="kval r" id="k-ev">—</div><div class="ksub">alarmas registradas</div></div>
@@ -468,6 +597,67 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
   <button class="tbtn" data-tab="vf">📋 Vista Flota</button>
   <button class="tbtn" data-tab="dc">🔌 Detalle Cargador</button>
   <button class="tbtn te" data-tab="de"><span class="tdot"></span> Detalle Errores</button>
+</div>
+
+<!-- ══ PANEL MULTI-COMPAÑÍA ══ -->
+<div id="company-panel">
+
+  <!-- Cards resumen -->
+  <div>
+    <div class="compare-header">
+      <span>📊 Resumen por compañía</span>
+      <span style="color:var(--t3);font-size:.55rem;font-weight:400;text-transform:none;letter-spacing:0">
+        Haz clic en una card para ver el detalle completo
+      </span>
+      <button onclick="showCompareView()">Ver comparativa →</button>
+    </div>
+    <div id="company-cards-grid"></div>
+  </div>
+
+  <!-- Vista comparativa -->
+  <div id="company-compare">
+    <div class="compare-header">
+      <span>⚖️ Comparativa entre compañías</span>
+      <button onclick="hideCompareView()">← Volver a cards</button>
+    </div>
+    <div class="dc">
+      <table class="compare-table" id="compare-table">
+        <thead>
+          <tr>
+            <th>Compañía</th>
+            <th>Cargadores</th>
+            <th>Instalaciones</th>
+            <th>Alarmas</th>
+            <th>Uptime</th>
+            <th>MTTR</th>
+            <th>Sesiones</th>
+            <th>Energía (kWh)</th>
+            <th>Recaudación</th>
+          </tr>
+        </thead>
+        <tbody id="compare-tbody"></tbody>
+      </table>
+    </div>
+    <div class="row g-2">
+      <div class="col-lg-6"><div class="dc"><div class="dct">Alarmas por compañía</div><div class="cc" style="height:180px"><canvas id="ch-cmp-alarms"></canvas></div></div></div>
+      <div class="col-lg-6"><div class="dc"><div class="dct">Energía total (kWh) por compañía</div><div class="cc" style="height:180px"><canvas id="ch-cmp-energy"></canvas></div></div></div>
+    </div>
+    <div class="row g-2">
+      <div class="col-lg-6"><div class="dc"><div class="dct">Uptime estimado por compañía</div><div class="cc" style="height:180px"><canvas id="ch-cmp-uptime"></canvas></div></div></div>
+      <div class="col-lg-6"><div class="dc"><div class="dct">Sesiones por compañía</div><div class="cc" style="height:180px"><canvas id="ch-cmp-sessions"></canvas></div></div></div>
+    </div>
+  </div>
+
+  <!-- Detalle individual -->
+  <div id="company-detail">
+    <div class="detail-back" onclick="hideDetailView()">← Volver a resumen</div>
+    <div class="detail-company-name">
+      <span class="detail-company-dot"></span>
+      <span id="detail-company-title">—</span>
+    </div>
+    <!-- El dashboard existente se reutiliza aquí abajo (tabs-nav + main) -->
+  </div>
+
 </div>
 
 <div id="main">
@@ -1481,163 +1671,430 @@ function closeAIModal(e) {
 }
 
 /* ═══════════════════════════════════════════════════
-   INICIO CARGA AUTOMÁTICA POR COMPAÑÍA
-   Lee manifest.json desde servidor interno (10.0.1.80)
-   y descarga los tres Excel al cambiar el selector.
+   INICIO SISTEMA MULTI-COMPAÑÍA
+   - Botón "Cargar todo" → descarga todas las compañías en paralelo
+   - Cards resumen con KPIs clave por compañía
+   - Vista comparativa con tabla + 4 gráficos
+   - Vista detalle: carga datos en D.* y usa el dashboard existente
 ═══════════════════════════════════════════════════ */
 
-// URL base del servidor interno. Cambiar si el servidor
-// usa DNS propio (ej: http://data.cosmos.local/cosmos-dashboard-data)
 const DATA_BASE = 'http://10.0.1.80:8090/cosmos-dashboard-data';
 
-// ── Helpers de estado visual ──────────────────────────
+// Store multi-compañía: { id, name, cargadores[], alarmas[], sesiones[], status, error }
+const MC = {};
+
+// Compañías conocidas (fallback si el manifest no está disponible)
+const KNOWN_COMPANIES = [
+  { id: 'a2a',                name: 'A2A' },
+  { id: 'c2gether',           name: 'C2gether' },
+  { id: 'circontrol-parking', name: 'Circontrol Parking' },
+  { id: 'teisa',              name: 'Teisa' }
+];
+
+// Instancias Chart.js de la comparativa (para destruirlas antes de redibujar)
+const CMP_CH = {};
+
+// Compañía actualmente en vista detalle
+let activeDetailId = null;
+
+// ── Utilidades de red ─────────────────────────────
+
+function fetchWithTimeout(url, ms = 10000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => { clearTimeout(t); return r; })
+    .catch(e => {
+      clearTimeout(t);
+      throw new Error(e.name === 'AbortError'
+        ? `Timeout (${ms/1000}s): ${url}`
+        : `Sin conexión: ${url}\n${e.message}`);
+    });
+}
+
+async function fetchExcel(url) {
+  const res = await fetchWithTimeout(url, 10000);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
+  const buf = await res.arrayBuffer();
+  const wb  = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: false });
+  const ws  = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
+}
+
+async function loadManifest() {
+  const url = `${DATA_BASE}/manifest.json`;
+  const res = await fetchWithTimeout(url, 8000);
+  if (!res.ok) throw new Error(`manifest.json HTTP ${res.status}`);
+  return res.json();
+}
+
+// ── Barra de progreso ─────────────────────────────
+
+function setProgress(pct) {
+  const bar  = document.getElementById('load-progress-bar');
+  const fill = document.getElementById('load-progress-fill');
+  if (!bar || !fill) return;
+  if (pct <= 0) { bar.classList.remove('visible'); fill.style.width = '0%'; return; }
+  bar.classList.add('visible');
+  fill.style.width = Math.min(100, pct) + '%';
+  if (pct >= 100) setTimeout(() => setProgress(0), 600);
+}
+
+// ── Cálculo de KPIs por compañía ─────────────────
+
+function calcCompanyKPIs(co) {
+  const A = co.alarmas  || [];
+  const S = co.sesiones || [];
+  const C = co.cargadores || [];
+
+  const cSet = new Set([...C.map(c => c.name), ...A.map(a => a.chargerName)].filter(Boolean));
+  const iSet = new Set([...C.map(c => c.facility), ...A.map(a => a.facility)].filter(Boolean));
+  const nC   = cSet.size || 1;
+
+  const durs  = A.map(a => a.duration).filter(d => d > 0);
+  const mttr  = durs.length ? durs.reduce((x,y)=>x+y,0)/durs.length : 0;
+
+  const tsDates = [...A.map(a=>a.producedAt), ...S.map(s=>s.startDate)].filter(Boolean).map(d=>d.getTime());
+  const spanH   = tsDates.length ? (Math.max(...tsDates)-Math.min(...tsDates))/3600000 : 0;
+
+  // Uptime simplificado
+  let uptime = null;
+  if (spanH > 0) {
+    let downSec = 0;
+    cSet.forEach(ch => {
+      const rows = A.filter(a => a.chargerName === ch);
+      const intervals = rows
+        .filter(r => r.producedAt && r.duration)
+        .map(r => [r.producedAt.getTime(), r.producedAt.getTime() + r.duration*1000])
+        .sort((a,b)=>a[0]-b[0]);
+      let ms = 0, cs = 0, ce = 0;
+      intervals.forEach(([s,e]) => {
+        if (!cs) { cs=s; ce=e; } else if (s<=ce) { ce=Math.max(ce,e); } else { ms+=ce-cs; cs=s; ce=e; }
+      });
+      if (cs) ms += ce-cs;
+      downSec += ms/1000;
+    });
+    uptime = Math.max(0, Math.min(100, (1 - (downSec/3600)/(spanH*nC))*100));
+  }
+
+  const energy = S.reduce((x,s)=>x+(s.energy||0), 0);
+  const revenue= S.reduce((x,s)=>x+(s.totalAmount||0), 0);
+
+  return {
+    chargers:     cSet.size,
+    installations:iSet.size,
+    alarms:       A.length,
+    sessions:     S.length,
+    uptime:       uptime,
+    mttr:         mttr,
+    energy:       energy,
+    revenue:      revenue
+  };
+}
+
+// ── Renderizado de cards ──────────────────────────
+
+function renderCompanyCards() {
+  const grid = document.getElementById('company-cards-grid');
+  if (!grid) return;
+  const ids = Object.keys(MC);
+  if (!ids.length) { grid.innerHTML = ''; return; }
+
+  grid.innerHTML = ids.map(id => {
+    const co  = MC[id];
+    const kpi = co.status === 'ok' ? calcCompanyKPIs(co) : null;
+
+    const badgeCls = co.status === 'ok' ? 'ok' : co.status === 'loading' ? 'loading' : 'error';
+    const badgeTxt = co.status === 'ok' ? '✓ cargado' : co.status === 'loading' ? '⏳ cargando' : '✕ error';
+    const isActive = activeDetailId === id ? 'active' : '';
+    const isLoad   = co.status === 'loading' ? 'loading-card' : '';
+    const isErr    = co.status === 'error'   ? 'error-card'   : '';
+
+    const kpiHtml = kpi ? `
+      <div class="co-kpi-grid">
+        <div class="co-kpi"><div class="co-kpi-lbl">Cargadores</div><div class="co-kpi-val b">${kpi.chargers}</div></div>
+        <div class="co-kpi"><div class="co-kpi-lbl">Alarmas</div><div class="co-kpi-val r">${kpi.alarms}</div></div>
+        <div class="co-kpi"><div class="co-kpi-lbl">Sesiones</div><div class="co-kpi-val c">${kpi.sessions}</div></div>
+        <div class="co-kpi"><div class="co-kpi-lbl">Uptime</div><div class="co-kpi-val g">${kpi.uptime!=null?kpi.uptime.toFixed(1)+'%':'—'}</div></div>
+        <div class="co-kpi"><div class="co-kpi-lbl">Energía (kWh)</div><div class="co-kpi-val">${kpi.energy.toFixed(0)}</div></div>
+        <div class="co-kpi"><div class="co-kpi-lbl">Recaudación</div><div class="co-kpi-val">${kpi.revenue.toFixed(0)}€</div></div>
+      </div>` : `<div style="color:var(--t3);font-size:.72rem;padding:12px 0;text-align:center">
+        ${co.status==='loading' ? '⏳ Descargando datos…' : co.status==='error' ? '❌ '+co.error : '—'}
+      </div>`;
+
+    return `
+      <div class="co-card ${isActive} ${isLoad} ${isErr}" onclick="openCompanyDetail('${id}')">
+        <div class="co-card-header">
+          <div class="co-card-name">${co.name}</div>
+          <span class="co-card-badge ${badgeCls}">${badgeTxt}</span>
+        </div>
+        ${kpiHtml}
+        <div class="co-card-footer">
+          <span>${kpi ? kpi.installations+' instalaciones' : ''}</span>
+          ${kpi ? '<span class="co-card-hint">Ver detalle →</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Vista comparativa ─────────────────────────────
+
+function showCompareView() {
+  document.getElementById('company-compare').classList.add('visible');
+  document.getElementById('company-detail').classList.remove('visible');
+  renderCompareView();
+}
+
+function hideCompareView() {
+  document.getElementById('company-compare').classList.remove('visible');
+}
+
+function renderCompareView() {
+  const ids  = Object.keys(MC).filter(id => MC[id].status === 'ok');
+  if (!ids.length) return;
+
+  const rows = ids.map(id => ({ id, name: MC[id].name, ...calcCompanyKPIs(MC[id]) }));
+
+  // Tabla comparativa con mejor/peor destacados
+  const maxUp  = Math.max(...rows.map(r => r.uptime ?? -1));
+  const minUp  = Math.min(...rows.map(r => r.uptime ?? 999));
+  const maxEn  = Math.max(...rows.map(r => r.energy));
+  const maxAl  = Math.max(...rows.map(r => r.alarms));
+  const minAl  = Math.min(...rows.map(r => r.alarms));
+
+  document.getElementById('compare-tbody').innerHTML = rows.map(r => `
+    <tr onclick="openCompanyDetail('${r.id}')" class="${activeDetailId===r.id?'active-row':''}">
+      <td>${r.name}</td>
+      <td>${r.chargers}</td>
+      <td>${r.installations}</td>
+      <td class="${r.alarms===minAl?'best-val':r.alarms===maxAl?'worst-val':''}">${r.alarms}</td>
+      <td class="${r.uptime===maxUp?'best-val':r.uptime===minUp?'worst-val':''}">${r.uptime!=null?r.uptime.toFixed(2)+'%':'—'}</td>
+      <td>${r.mttr?fmtS(r.mttr):'—'}</td>
+      <td>${r.sessions}</td>
+      <td class="${r.energy===maxEn?'best-val':''}">${r.energy.toFixed(0)}</td>
+      <td>${r.revenue.toFixed(0)}€</td>
+    </tr>`).join('');
+
+  // Colores por compañía
+  const COLS = ['#2f80ed','#27ae60','#f39c12','#e74c3c','#8e44ad','#00d4ff'];
+  const labels = rows.map(r => r.name);
+  const bgCols = rows.map((_,i) => COLS[i % COLS.length] + '99');
+  const bdCols = rows.map((_,i) => COLS[i % COLS.length]);
+
+  const chOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y}}},
+    scales:{x:{ticks:{font:{size:10},color:'#8b949e'},grid:{color:'rgba(255,255,255,.05)'}},
+            y:{ticks:{font:{size:10},color:'#8b949e'},grid:{color:'rgba(255,255,255,.05)'}}}
+  };
+
+  function mkCmp(id, label, data) {
+    if (CMP_CH[id]) { try { CMP_CH[id].destroy(); } catch(_){} }
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    CMP_CH[id] = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label, data, backgroundColor: bgCols, borderColor: bdCols, borderWidth: 2, borderRadius: 5 }] },
+      options: chOpts
+    });
+  }
+
+  mkCmp('ch-cmp-alarms',  'Alarmas',        rows.map(r => r.alarms));
+  mkCmp('ch-cmp-energy',  'Energía (kWh)',  rows.map(r => parseFloat(r.energy.toFixed(1))));
+  mkCmp('ch-cmp-uptime',  'Uptime %',       rows.map(r => r.uptime!=null ? parseFloat(r.uptime.toFixed(2)) : 0));
+  mkCmp('ch-cmp-sessions','Sesiones',       rows.map(r => r.sessions));
+}
+
+// ── Vista detalle individual ──────────────────────
+
+function openCompanyDetail(id) {
+  const co = MC[id];
+  if (!co || co.status !== 'ok') return;
+
+  activeDetailId = id;
+  renderCompanyCards();
+
+  // Cargar datos de esta compañía en el store global D
+  D.cargadores = co.cargadores;
+  D.alarmas    = co.alarmas;
+  D.sesiones   = co.sesiones;
+
+  // Marcar botones manuales como cargados
+  $('#lbl-c, #lbl-s, #lbl-a').addClass('loaded');
+
+  // Mostrar panel de detalle
+  document.getElementById('company-detail').classList.add('visible');
+  document.getElementById('company-compare').classList.remove('visible');
+  document.getElementById('detail-company-title').textContent = co.name;
+
+  // Mover tabs-nav y main dentro del panel de detalle
+  const detailDiv  = document.getElementById('company-detail');
+  const tabsNav    = document.getElementById('tabs-nav');
+  const mainDiv    = document.getElementById('main');
+  if (!detailDiv.contains(tabsNav)) detailDiv.appendChild(tabsNav);
+  if (!detailDiv.contains(mainDiv)) detailDiv.appendChild(mainDiv);
+
+  // Refrescar dashboard con datos de la compañía
+  onLoad();
+
+  document.getElementById('company-panel').scrollTop = 0;
+}
+
+function hideDetailView() {
+  activeDetailId = null;
+  renderCompanyCards();
+
+  document.getElementById('company-detail').classList.remove('visible');
+
+  // Devolver tabs-nav y main a su posición original (fuera del panel)
+  const body   = document.body;
+  const panel  = document.getElementById('company-panel');
+  const tabsNav= document.getElementById('tabs-nav');
+  const mainDiv= document.getElementById('main');
+  body.insertBefore(tabsNav, panel.nextSibling);
+  body.insertBefore(mainDiv, tabsNav.nextSibling);
+}
+
+// ── Carga de una compañía ─────────────────────────
+
+async function loadOneCompany(id, name) {
+  MC[id] = { id, name, status: 'loading', cargadores: [], alarmas: [], sesiones: [], error: null };
+  renderCompanyCards();
+
+  try {
+    const [rawC, rawS, rawA] = await Promise.all([
+      fetchExcel(`${DATA_BASE}/${id}/chargers.xlsx`),
+      fetchExcel(`${DATA_BASE}/${id}/sessions.xlsx`),
+      fetchExcel(`${DATA_BASE}/${id}/alarms.xlsx`)
+    ]);
+    MC[id].cargadores = parseCarg(rawC);
+    MC[id].sesiones   = parseSess(rawS);
+    MC[id].alarmas    = parseAlarm(rawA);
+    MC[id].status     = 'ok';
+  } catch(err) {
+    console.error(`[MultiLoad] Error en ${id}:`, err.message);
+    MC[id].status = 'error';
+    MC[id].error  = err.message.split('\n')[0];
+  }
+
+  renderCompanyCards();
+}
+
+// ── Botón "Cargar todo" ───────────────────────────
+
+async function loadAllCompanies() {
+  const btn = document.getElementById('btn-load-all');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="bla-icon">⏳</span> Cargando…'; }
+
+  // Obtener lista de compañías desde manifest o fallback estático
+  let companies = KNOWN_COMPANIES;
+  try {
+    const manifest = await loadManifest();
+    if (Array.isArray(manifest?.companies) && manifest.companies.length) {
+      companies = manifest.companies.map(c => ({ id: c.id, name: c.name || c.id }));
+    }
+  } catch(err) {
+    console.warn('[MultiLoad] Manifest no disponible, usando lista estática:', err.message);
+  }
+
+  // Mostrar panel multi-compañía, ocultar dashboard individual
+  document.getElementById('company-panel').classList.add('visible');
+
+  // Inicializar todos como loading
+  companies.forEach(c => {
+    MC[c.id] = { id: c.id, name: c.name, status: 'loading', cargadores: [], alarmas: [], sesiones: [], error: null };
+  });
+  renderCompanyCards();
+  setProgress(5);
+
+  // Descargar todas en paralelo, actualizando progreso según van llegando
+  let done = 0;
+  await Promise.all(companies.map(async c => {
+    await loadOneCompany(c.id, c.name);
+    done++;
+    setProgress(5 + (done / companies.length) * 92);
+  }));
+
+  setProgress(100);
+
+  // Rellenar comparativa si hay más de una compañía cargada
+  const loaded = companies.filter(c => MC[c.id]?.status === 'ok');
+  if (loaded.length > 1) {
+    renderCompareView();
+    document.getElementById('company-compare').classList.add('visible');
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<span class="bla-icon">✓</span> Todo cargado'; }
+}
+
+// ── Carga individual (selector existente) ─────────
 
 function setCompanyStatus(state, text) {
-  const el = document.getElementById('company-status');
+  const el  = document.getElementById('company-status');
   const sel = document.getElementById('company-select');
   if (!el) return;
-  el.className = 'company-status ' + state;   // '', 'loading', 'ok', 'error'
+  el.className  = 'company-status ' + state;
   el.textContent = text;
   if (sel) sel.disabled = (state === 'loading');
 }
 
-// ── loadManifest ─────────────────────────────────────
-// Descarga manifest.json del servidor interno.
-// Devuelve el objeto JSON o lanza un Error descriptivo.
-
-async function loadManifest() {
-  const url = `${DATA_BASE}/manifest.json`;
-  let res;
-  try {
-    res = await fetch(url);
-  } catch (netErr) {
-    throw new Error(
-      'No se pudo conectar al servidor interno.\n' +
-      'Comprueba que estás conectado a la VPN o red corporativa.\n\n' +
-      'URL: ' + url + '\nDetalle: ' + netErr.message
-    );
-  }
-  if (!res.ok) throw new Error(`manifest.json devolvió HTTP ${res.status} (${url})`);
-  return res.json();
-}
-
-// ── fetchExcel ───────────────────────────────────────
-// Descarga un .xlsx desde una URL y lo convierte en
-// matriz de filas (igual que FileReader en el flujo manual).
-
-async function fetchExcel(url) {
-  let res;
-  try {
-    res = await fetch(url);
-  } catch (netErr) {
-    throw new Error('Error de red al descargar: ' + url + '\n' + netErr.message);
-  }
-  if (!res.ok) throw new Error(`HTTP ${res.status} al descargar: ${url}`);
-  const buffer = await res.arrayBuffer();
-  const wb = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: false });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
-}
-
-// ── loadCompanyData ──────────────────────────────────
-// Orquesta la descarga de los tres Excel de una compañía,
-// los parsea con las funciones existentes y refresca el dashboard.
-
 async function loadCompanyData(companyId) {
   if (!companyId) return;
-
   setCompanyStatus('loading', '⏳ cargando…');
-
-  const urlC = `${DATA_BASE}/${companyId}/chargers.xlsx`;
-  const urlS = `${DATA_BASE}/${companyId}/sessions.xlsx`;
-  const urlA = `${DATA_BASE}/${companyId}/alarms.xlsx`;
-
-  let rawC, rawS, rawA;
   try {
-    [rawC, rawS, rawA] = await Promise.all([
-      fetchExcel(urlC),
-      fetchExcel(urlS),
-      fetchExcel(urlA)
+    const [rawC, rawS, rawA] = await Promise.all([
+      fetchExcel(`${DATA_BASE}/${companyId}/chargers.xlsx`),
+      fetchExcel(`${DATA_BASE}/${companyId}/sessions.xlsx`),
+      fetchExcel(`${DATA_BASE}/${companyId}/alarms.xlsx`)
     ]);
-  } catch (err) {
-    console.error('[AutoLoad] Fallo al descargar Excel:', err);
-    setCompanyStatus('error', '✕ error red');
-    alert(
-      '❌ No se pudieron descargar los datos de la compañía.\n\n' +
-      err.message + '\n\n' +
-      'Comprueba:\n' +
-      '  1. Conexión VPN activa\n' +
-      '  2. Servidor 10.0.1.80 accesible\n' +
-      '  3. CORS habilitado en IIS (web.config)\n' +
-      '  4. HTTPS si el dashboard está en producción'
-    );
-    return;
+    D.cargadores = parseCarg(rawC);
+    D.sesiones   = parseSess(rawS);
+    D.alarmas    = parseAlarm(rawA);
+    $('#lbl-c, #lbl-s, #lbl-a').addClass('loaded');
+    onLoad();
+    setCompanyStatus('ok', '✓ ' + companyId);
+  } catch(err) {
+    console.error('[SingleLoad]', err);
+    setCompanyStatus('error', '✕ error');
+    alert('❌ ' + err.message);
   }
-
-  // Parsear con las funciones existentes del dashboard
-  D.cargadores = parseCarg(rawC);
-  D.sesiones   = parseSess(rawS);
-  D.alarmas    = parseAlarm(rawA);
-
-  // Marcar los botones manuales como cargados (igual que el flujo de input file)
-  $('#lbl-c').addClass('loaded');
-  $('#lbl-s').addClass('loaded');
-  $('#lbl-a').addClass('loaded');
-
-  // Refrescar dashboard
-  onLoad();
-
-  setCompanyStatus('ok', '✓ ' + companyId);
 }
 
-// ── populateCompanySelector ──────────────────────────
-// Intenta leer el manifest para añadir compañías dinámicas.
-// Si falla (sin VPN, sin servidor), las opciones estáticas del
-// HTML siguen funcionando — no bloquea ni muestra error al usuario.
+// ── Populator del selector ────────────────────────
 
 async function populateCompanySelector() {
-  let manifest;
   try {
-    manifest = await loadManifest();
-  } catch (err) {
-    // Sin VPN/servidor: silencioso. Las opciones hardcoded del select siguen activas.
-    console.warn('[AutoLoad] Manifest no disponible (sin VPN?):', err.message);
-    return;
+    const manifest = await loadManifest();
+    const companies = manifest?.companies;
+    if (!Array.isArray(companies)) return;
+    const sel = document.getElementById('company-select');
+    if (!sel) return;
+    const existing = new Set(Array.from(sel.options).map(o => o.value).filter(Boolean));
+    companies.forEach(c => {
+      if (!c.id || existing.has(c.id)) return;
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name || c.id;
+      sel.appendChild(opt);
+    });
+  } catch(err) {
+    console.warn('[AutoLoad] Manifest no disponible:', err.message);
   }
-
-  const companies = manifest?.companies;
-  if (!Array.isArray(companies)) return;
-
-  const sel = document.getElementById('company-select');
-  if (!sel) return;
-
-  // Ids ya presentes como opciones estáticas → no duplicar
-  const existing = new Set(Array.from(sel.options).map(o => o.value).filter(Boolean));
-
-  companies.forEach(c => {
-    if (!c.id || existing.has(c.id)) return;
-    const opt = document.createElement('option');
-    opt.value       = c.id;
-    opt.textContent = c.name || c.id;
-    sel.appendChild(opt);
-  });
 }
 
-// ── Eventos ──────────────────────────────────────────
+// ── Eventos ───────────────────────────────────────
 
-// onChange: cargar datos al instante al seleccionar compañía
+document.getElementById('btn-load-all')
+  ?.addEventListener('click', loadAllCompanies);
+
 document.getElementById('company-select')
-  ?.addEventListener('change', function () {
-    loadCompanyData(this.value);
-  });
+  ?.addEventListener('change', function() { loadCompanyData(this.value); });
 
-// Poblar selector desde manifest al arrancar
 window.addEventListener('DOMContentLoaded', () => {
   populateCompanySelector();
 });
 
 /* ═══════════════════════════════════════════════════
-   FIN CARGA AUTOMÁTICA POR COMPAÑÍA
+   FIN SISTEMA MULTI-COMPAÑÍA
 ═══════════════════════════════════════════════════ */
 </script>
 </body>
