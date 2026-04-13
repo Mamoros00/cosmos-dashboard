@@ -176,6 +176,21 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
 .btn-theme{background:var(--bgc);border:1px solid var(--brd);color:var(--t1);padding:7px 13px;border-radius:8px;cursor:pointer;font-size:.8rem;font-family:var(--font-main);font-weight:600;transition:all .2s}
 .btn-theme:hover{background:var(--bgch)}
 
+/* ── INICIO CARGA AUTOMÁTICA POR COMPAÑÍA ── */
+.company-load-wrap{display:flex;align-items:center;gap:6px;background:var(--bgc);border:1px solid var(--brd);border-radius:8px;padding:4px 8px;flex-wrap:nowrap}
+.company-load-wrap .company-sep{width:1px;height:22px;background:var(--brd);flex-shrink:0}
+.company-load-label{font-family:var(--font-mono);font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--t3);white-space:nowrap}
+.company-select{background:var(--bg);border:1px solid var(--brd);color:var(--t1);border-radius:6px;padding:4px 8px;font-family:var(--font-main);font-size:.72rem;cursor:pointer;transition:border .2s;height:28px;min-width:120px}
+.company-select:focus{outline:none;border-color:var(--blue)}
+.company-select:disabled{opacity:.55;cursor:not-allowed}
+/* Badge de estado de carga inline */
+.company-status{font-family:var(--font-mono);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;transition:all .25s;display:none}
+.company-status.loading{display:inline-block;background:rgba(47,128,237,.15);color:var(--blue);border:1px solid rgba(47,128,237,.3);animation:cs-pulse 1.2s infinite}
+.company-status.ok{display:inline-block;background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.3)}
+.company-status.error{display:inline-block;background:rgba(231,76,60,.15);color:var(--red);border:1px solid rgba(231,76,60,.3)}
+@keyframes cs-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+/* ── FIN CARGA AUTOMÁTICA POR COMPAÑÍA ── */
+
 #kpi-banner{background:var(--bg2);border-bottom:1px solid var(--brd);padding:6px 14px;flex-shrink:0}
 .krow{display:grid;gap:1px;background:var(--brd);border:1px solid var(--brd);border-radius:8px;overflow:hidden;margin-bottom:4px;grid-template-columns:repeat(7,1fr)}
 .kcard{background:var(--bgc);padding:6px 10px;transition:background .15s}
@@ -312,6 +327,20 @@ body{font-family:var(--font-main);font-size:var(--font-size);background:var(--bg
       <span>⚡ Sesiones</span><span class="lm">✓</span>
       <input type="file" accept=".xlsx,.xls" id="f-sesiones">
     </label>
+    <!-- INICIO CARGA AUTOMÁTICA POR COMPAÑÍA -->
+    <div class="company-load-wrap" title="Carga automática desde servidor interno">
+      <span class="company-load-label">🏢 Red</span>
+      <div class="company-sep"></div>
+      <select id="company-select" class="company-select">
+        <option value="">— compañía —</option>
+        <option value="a2a">A2A</option>
+        <option value="c2gether">C2gether</option>
+        <option value="circontrol-parking">Circontrol Parking</option>
+        <option value="teisa">Teisa</option>
+      </select>
+      <span id="company-status" class="company-status"></span>
+    </div>
+    <!-- FIN CARGA AUTOMÁTICA POR COMPAÑÍA -->
     <button class="btn-theme" id="btn-theme">☀️ Día</button>
     <!-- Panel de personalización integrado en el banner (no fixed, iframe-safe) -->
     <div style="position:relative">
@@ -1450,6 +1479,166 @@ function closeAIModal(e) {
   if (e && e.target !== document.getElementById('ai-modal-backdrop')) return;
   document.getElementById('ai-modal-backdrop').classList.remove('open');
 }
+
+/* ═══════════════════════════════════════════════════
+   INICIO CARGA AUTOMÁTICA POR COMPAÑÍA
+   Lee manifest.json desde servidor interno (10.0.1.80)
+   y descarga los tres Excel al cambiar el selector.
+═══════════════════════════════════════════════════ */
+
+// URL base del servidor interno. Cambiar si el servidor
+// usa DNS propio (ej: http://data.cosmos.local/cosmos-dashboard-data)
+const DATA_BASE = 'http://10.0.1.80/cosmos-dashboard-data';
+
+// ── Helpers de estado visual ──────────────────────────
+
+function setCompanyStatus(state, text) {
+  const el = document.getElementById('company-status');
+  const sel = document.getElementById('company-select');
+  if (!el) return;
+  el.className = 'company-status ' + state;   // '', 'loading', 'ok', 'error'
+  el.textContent = text;
+  if (sel) sel.disabled = (state === 'loading');
+}
+
+// ── loadManifest ─────────────────────────────────────
+// Descarga manifest.json del servidor interno.
+// Devuelve el objeto JSON o lanza un Error descriptivo.
+
+async function loadManifest() {
+  const url = `${DATA_BASE}/manifest.json`;
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (netErr) {
+    throw new Error(
+      'No se pudo conectar al servidor interno.\n' +
+      'Comprueba que estás conectado a la VPN o red corporativa.\n\n' +
+      'URL: ' + url + '\nDetalle: ' + netErr.message
+    );
+  }
+  if (!res.ok) throw new Error(`manifest.json devolvió HTTP ${res.status} (${url})`);
+  return res.json();
+}
+
+// ── fetchExcel ───────────────────────────────────────
+// Descarga un .xlsx desde una URL y lo convierte en
+// matriz de filas (igual que FileReader en el flujo manual).
+
+async function fetchExcel(url) {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (netErr) {
+    throw new Error('Error de red al descargar: ' + url + '\n' + netErr.message);
+  }
+  if (!res.ok) throw new Error(`HTTP ${res.status} al descargar: ${url}`);
+  const buffer = await res.arrayBuffer();
+  const wb = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: false });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
+}
+
+// ── loadCompanyData ──────────────────────────────────
+// Orquesta la descarga de los tres Excel de una compañía,
+// los parsea con las funciones existentes y refresca el dashboard.
+
+async function loadCompanyData(companyId) {
+  if (!companyId) return;
+
+  setCompanyStatus('loading', '⏳ cargando…');
+
+  const urlC = `${DATA_BASE}/${companyId}/chargers.xlsx`;
+  const urlS = `${DATA_BASE}/${companyId}/sessions.xlsx`;
+  const urlA = `${DATA_BASE}/${companyId}/alarms.xlsx`;
+
+  let rawC, rawS, rawA;
+  try {
+    [rawC, rawS, rawA] = await Promise.all([
+      fetchExcel(urlC),
+      fetchExcel(urlS),
+      fetchExcel(urlA)
+    ]);
+  } catch (err) {
+    console.error('[AutoLoad] Fallo al descargar Excel:', err);
+    setCompanyStatus('error', '✕ error red');
+    alert(
+      '❌ No se pudieron descargar los datos de la compañía.\n\n' +
+      err.message + '\n\n' +
+      'Comprueba:\n' +
+      '  1. Conexión VPN activa\n' +
+      '  2. Servidor 10.0.1.80 accesible\n' +
+      '  3. CORS habilitado en IIS (web.config)\n' +
+      '  4. HTTPS si el dashboard está en producción'
+    );
+    return;
+  }
+
+  // Parsear con las funciones existentes del dashboard
+  D.cargadores = parseCarg(rawC);
+  D.sesiones   = parseSess(rawS);
+  D.alarmas    = parseAlarm(rawA);
+
+  // Marcar los botones manuales como cargados (igual que el flujo de input file)
+  $('#lbl-c').addClass('loaded');
+  $('#lbl-s').addClass('loaded');
+  $('#lbl-a').addClass('loaded');
+
+  // Refrescar dashboard
+  onLoad();
+
+  setCompanyStatus('ok', '✓ ' + companyId);
+}
+
+// ── populateCompanySelector ──────────────────────────
+// Intenta leer el manifest para añadir compañías dinámicas.
+// Si falla (sin VPN, sin servidor), las opciones estáticas del
+// HTML siguen funcionando — no bloquea ni muestra error al usuario.
+
+async function populateCompanySelector() {
+  let manifest;
+  try {
+    manifest = await loadManifest();
+  } catch (err) {
+    // Sin VPN/servidor: silencioso. Las opciones hardcoded del select siguen activas.
+    console.warn('[AutoLoad] Manifest no disponible (sin VPN?):', err.message);
+    return;
+  }
+
+  const companies = manifest?.companies;
+  if (!Array.isArray(companies)) return;
+
+  const sel = document.getElementById('company-select');
+  if (!sel) return;
+
+  // Ids ya presentes como opciones estáticas → no duplicar
+  const existing = new Set(Array.from(sel.options).map(o => o.value).filter(Boolean));
+
+  companies.forEach(c => {
+    if (!c.id || existing.has(c.id)) return;
+    const opt = document.createElement('option');
+    opt.value       = c.id;
+    opt.textContent = c.name || c.id;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Eventos ──────────────────────────────────────────
+
+// onChange: cargar datos al instante al seleccionar compañía
+document.getElementById('company-select')
+  ?.addEventListener('change', function () {
+    loadCompanyData(this.value);
+  });
+
+// Poblar selector desde manifest al arrancar
+window.addEventListener('DOMContentLoaded', () => {
+  populateCompanySelector();
+});
+
+/* ═══════════════════════════════════════════════════
+   FIN CARGA AUTOMÁTICA POR COMPAÑÍA
+═══════════════════════════════════════════════════ */
 </script>
 </body>
 </html>
